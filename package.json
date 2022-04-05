@@ -1,0 +1,33 @@
+{
+	"name": "bare-client",
+	"version": "0.0.1",
+	"homepage": "https://github.com/tomphttp",
+	"bugs": {
+		"url": "https://github.com/tomphttp/bare-client/issues",
+		"email": "tomp@sys32.dev"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tomphttp/bare-client.git"
+	},
+	"author": {
+		"name": "TOMP Development",
+		"email": "tomp@sys32.dev",
+		"url": "https://github.com/tomphttp"
+	},
+	"license": "GPL-3.0",
+	"type": "module",
+	"main": "BareClient.js",
+	"dependencies": {},
+	"devDependencies": {
+		"husky": "^7.0.4",
+		"lint-staged": "^12.3.7",
+		"prettier": "2.6.0"
+	},
+	"lint-staged": {
+		"*.{js,json}": "prettier --write"
+	},
+	"scripts": {
+		"prepare": "husky install"
+	}
+}
