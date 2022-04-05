@@ -6,7 +6,6 @@ export default class BareClient {
 			methods: ['GET', 'HEAD'],
 			status: [204, 304],
 		};
-		this.server = null;
 	}
 	async ping() {
 		const res = await fetch(this.server);
