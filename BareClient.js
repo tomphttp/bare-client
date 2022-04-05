@@ -21,7 +21,7 @@ export default class BareClient {
 
 import { encodeProtocol } from './encodeProtocol.js';
 
-class V1Client {
+export class V1Client {
 	constructor(ctx) {
 		this.ctx = ctx;
 		this.gateway = ctx.bare + 'v1/';
