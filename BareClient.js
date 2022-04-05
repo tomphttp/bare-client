@@ -11,9 +11,9 @@ export default class BareClient {
 		const res = await fetch(this.server);
 
 		if (!res.ok) {
-			this.server = false;
+			this.serving = false;
 		} else {
-			this.server = await res.json();
+			this.serving = await res.json();
 		}
 	}
 }
