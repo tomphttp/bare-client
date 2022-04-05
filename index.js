@@ -1,9 +1,8 @@
 const valid_chars = "!#$%&'*+-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ^_`abcdefghijklmnopqrstuvwxyz|~";
 const reserved_chars = "%";
 
-class Tomp extends EventTarget {
+class Tomp {
     constructor(bare = '/bare/') {
-        super();
         this.bare = new URL(bare, location).href;
         this.v1 = new V1Client(this);
         this.emptyBody = {
