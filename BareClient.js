@@ -109,7 +109,16 @@ export default class BareClient {
 	 * @param {BareFetchInit} init
 	 * @returns {BareResponse}
 	 */
-	async fetch(url, init) {
+	async fetch(url, init = {}) {
 		url = new URL(url);
-	}
+		return this.request(
+			init.method || 'GET',
+			init.headers || {},
+			init.body || null,
+			url.protocol,
+			url.hostname,
+			url.port || url.protocol === 'https:' ? '443' : '80',
+			url.pathname + url.search
+		);
+	};
 }
