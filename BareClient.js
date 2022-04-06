@@ -22,6 +22,10 @@ import ClientV2 from './V2.js';
  * @property {object} rawHeaders
  */
 
+/**
+ * @typedef {object} BareFetchInit
+ */
+
 export default class BareClient {
 	ready = false;
 	/**
@@ -98,5 +102,14 @@ export default class BareClient {
 	async connect(...args) {
 		await this.#work();
 		return this.client.connect(...args);
+	}
+	/**
+	 *
+	 * @param {URL} url
+	 * @param {BareFetchInit} init
+	 * @returns {BareResponse}
+	 */
+	async fetch(url, init) {
+		url = new URL(url);
 	}
 }
