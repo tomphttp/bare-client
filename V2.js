@@ -101,7 +101,6 @@ export default class ClientV2 extends Client {
 			options.body = body;
 		}
 
-		// bare can be an absolute path containing no origin, it becomes relative to the script
 		const request = new Request(
 			this.http + '?cache=' + md5(`${protocol}${host}${port}${path}`),
 			options
