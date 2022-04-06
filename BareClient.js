@@ -1,102 +1,102 @@
+// Implements the protocol for requesting bare data from a server
+// See ../Server/Send.mjs
+
+export * from './Client.js';
+import ClientV1 from './V1.js';
+import ClientV2 from './V2.js';
+
+/**
+ * @typedef {object} BareMeta
+ * @property {object} headers
+ */
+
+/**
+ * @description WebSocket with an additional property.
+ * @typedef {object} BareWebSocket
+ * @property {Promise<BareMeta>} meta
+ */
+
+/**
+ * @description A Response with additional properties.
+ * @typedef {object} BareResponse
+ * @property {object} rawHeaders
+ */
+
 export default class BareClient {
-	constructor(server = '/bare/') {
-		this.server = new URL(server, location).href;
-		this.v1 = new V1Client(this);
-		this.emptyBody = {
-			methods: ['GET', 'HEAD'],
-			status: [204, 304],
-		};
-	}
-	async ping() {
-		const res = await fetch(this.server);
+	ready = false;
+	/**
+	 *
+	 * @param {string|URL} server - A full URL to theb are server.
+	 * @param {object} [data] - The a copy of the Bare server data found in BareClient.data. If specified, this data will be loaded. Otherwise, a request will be made to the bare server (upon fetching or creating a WebSocket).
+	 */
+	constructor(server, data) {
+		this.server = new URL(server);
 
-		if (!res.ok) {
-			this.serving = false;
-		} else {
-			this.serving = await res.json();
+		if (typeof data === 'object') {
+			this.#loadData(data);
 		}
 	}
-}
+	#loadData(data) {
+		let found = false;
 
-import { encodeProtocol } from './encodeProtocol.js';
-
-export class V1Client {
-	constructor(ctx) {
-		this.ctx = ctx;
-		this.gateway = ctx.bare + 'v1/';
-		this.ws = {
-			generateId: ctx.bare + 'ws-new-meta/',
-			getMeta: ctx.bare + 'ws-meta/',
-		};
-		this.forward = [
-			'accept-encoding',
-			'accept-language',
-			'sec-websocket-extensions',
-			'sec-websocket-key',
-			'sec-websocket-version',
-		];
-	}
-	async fetch(input, opts = {}) {
-		if (!input) throw 'Err';
-
-		const raw = await self.fetch(this.gateway, {
-			method: opts.method || 'GET',
-			headers: this.prepareRequest(input, opts.headers || {}),
-			body: opts.body || null,
-			credentials: 'omit',
-		});
-
-		return this.prepareResponse(raw);
-	}
-	prepareSocket(url, headers = {}, protocol = [], id) {
-		url = new URL(url);
-
-		if (typeof protocol === 'string' || !!protocol.length) {
-			headers['Sec-WebSocket-Protocol'] =
-				typeof protocol === 'string' ? protocol : protocol.join(', ');
+		// newest-oldest
+		for (let constructor of [ClientV2, ClientV1]) {
+			if (data.versions.includes(`v${constructor.version}`)) {
+				this.client = new constructor(this);
+				found = true;
+				break;
+			}
 		}
 
-		const data = {
-			remote: {
-				host: url.hostname,
-				port: url.port || url.protocol === 'wss:' ? '443' : '80',
-				path: url.pathname + url.search,
-				protocol: url.protocol,
-			},
-			headers,
-			forward_headers: this.forward,
-		};
+		if (!found) {
+			throw new Error(`Unable to find compatible client version.`);
+		}
 
-		if (id) data.id = id;
-
-		return [this.gateway, encodeProtocol(data)];
+		this.data = data;
+		this.ready = true;
 	}
-	prepareRequest(url, headers = {}) {
-		url = new URL(url);
-		return {
-			'X-Bare-Host': url.hostname,
-			'X-Bare-Port': url.port || url.protocol === 'https:' ? '443' : '80',
-			'X-Bare-Protocol': url.protocol,
-			'X-Bare-Path': url.pathname + url.search,
-			'X-Bare-Headers': JSON.stringify(headers),
-			'X-Bare-Forward-Headers': JSON.stringify(this.forward),
-		};
+	async #work() {
+		if (this.ready === true) {
+			return;
+		}
+
+		const outgoing = await fetch(this.server);
+
+		if (!outgoing.ok) {
+			throw new Error(
+				`Unable to fetch Bare meta: ${outgoing.status} ${await outgoing.text()}`
+			);
+		}
+
+		this.#loadData(await outgoing.json());
 	}
-	prepareResponse(resp) {
-		if (!resp.headers.has('x-bare-status'))
-			throw new Error('Response status code not specified.');
-		if (!resp.headers.has('x-bare-status-text'))
-			throw new Error('Response status text not specified.');
-		if (!resp.headers.has('x-bare-headers'))
-			throw new Error('Response headers not specified.');
-
-		const res = new Response(resp.body, {
-			status: +resp.headers.get('x-bare-status'),
-			statusText: resp.headers.get('x-bare-status-text'),
-			headers: JSON.parse(resp.headers.get('x-bare-headers')),
-		});
-
-		res.raw = resp;
-		return res;
+	/**
+	 *
+	 * @param {'GET'|'POST'|'DELETE'|'OPTIONS'|'PUT'|'PATCH'|'UPDATE'} method
+	 * @param {object} request_headers
+	 * @param {Blob|BufferSource|FormData|URLSearchParams|ReadableStream} body
+	 * @param {'http:'|'https:'} protocol
+	 * @param {string} host
+	 * @param {string|number} port
+	 * @param {string} path
+	 * @param {'default'|'no-store'|'reload'|'no-cache'|'force-cache'|'only-if-cached'} cache
+	 * @returns {BareResponse}
+	 */
+	async request(...args) {
+		await this.#work();
+		return this.client.request(...args);
+	}
+	/**
+	 *
+	 * @param {object} request_headers
+	 * @param {'ws:'|'wss:'} protocol
+	 * @param {string} host
+	 * @param {string|number} port
+	 * @param {string} path
+	 * @returns {BareWebSocket}
+	 */
+	async connect(...args) {
+		await this.#work();
+		return this.client.connect(...args);
 	}
 }

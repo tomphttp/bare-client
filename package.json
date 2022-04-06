@@ -18,7 +18,9 @@
 	"license": "GPL-3.0",
 	"type": "module",
 	"main": "BareClient.js",
-	"dependencies": {},
+	"dependencies": {
+		"md5": "^2.3.0"
+	},
 	"devDependencies": {
 		"husky": "^7.0.4",
 		"lint-staged": "^12.3.7",
