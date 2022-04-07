@@ -2,8 +2,9 @@ import Client, { BareError, statusCache, statusEmpty } from './Client.js';
 import { encodeProtocol } from './encodeProtocol.js';
 import { split_headers, join_headers } from './splitHeaderUtil.js';
 import md5 from 'md5';
+import global from './global.js';
 
-const { fetch, WebSocket, Request } = self;
+const { fetch, WebSocket, Request } = global;
 
 export default class ClientV2 extends Client {
 	static version = 2;

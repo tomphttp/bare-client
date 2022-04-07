@@ -1,7 +1,8 @@
 import Client, { BareError, statusEmpty } from './Client.js';
 import { encodeProtocol } from './encodeProtocol.js';
+import global from './global.js';
 
-const { fetch, WebSocket } = self;
+const { fetch, WebSocket } = global;
 
 export default class ClientV1 extends Client {
 	static version = 1;
