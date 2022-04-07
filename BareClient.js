@@ -6,6 +6,10 @@ import ClientV1 from './V1.js';
 import ClientV2 from './V2.js';
 
 /**
+ * @typedef {object.<string, string[]>} BareHeaders
+ */
+
+/**
  * @typedef {object} BareMeta
  * @property {object} headers
  */
@@ -19,13 +23,13 @@ import ClientV2 from './V2.js';
 /**
  * @description A Response with additional properties.
  * @typedef {object} BareResponse
- * @property {object} rawHeaders
+ * @property {BareHeaders} rawHeaders
  */
 
 /**
  * @typedef {object} BareFetchInit
  * @property {'GET'|'POST'|'DELETE'|'OPTIONS'|'PUT'|'PATCH'|'UPDATE'} [method]
- * @property {object.<string, string[]>} [headers]
+ * @property {BareHeaders} [headers]
  * @property {Blob|BufferSource|FormData|URLSearchParams|ReadableStream} [body]
  * @property {'default'|'no-store'|'reload'|'no-cache'|'force-cache'|'only-if-cached'} [cache]
  * @returns {BareResponse}
@@ -82,7 +86,7 @@ export default class BareClient {
 	/**
 	 *
 	 * @param {'GET'|'POST'|'DELETE'|'OPTIONS'|'PUT'|'PATCH'|'UPDATE'} method
-	 * @param {object} request_headers
+	 * @param {BareHeaders} request_headers
 	 * @param {Blob|BufferSource|FormData|URLSearchParams|ReadableStream} body
 	 * @param {'http:'|'https:'} protocol
 	 * @param {string} host
@@ -115,7 +119,7 @@ export default class BareClient {
 	}
 	/**
 	 *
-	 * @param {object} request_headers
+	 * @param {BareHeaders} request_headers
 	 * @param {'ws:'|'wss:'} protocol
 	 * @param {string} host
 	 * @param {string|number} port
