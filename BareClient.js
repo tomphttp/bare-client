@@ -120,5 +120,5 @@ export default class BareClient {
 			url.port || url.protocol === 'https:' ? '443' : '80',
 			url.pathname + url.search
 		);
-	};
+	}
 }
