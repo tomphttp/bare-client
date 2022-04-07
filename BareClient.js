@@ -111,13 +111,50 @@ export default class BareClient {
 	 */
 	async fetch(url, init = {}) {
 		url = new URL(url);
+
+		let method;
+
+		if (typeof init.method === 'string') {
+			method = init.method;
+		} else {
+			method = 'GET';
+		}
+
+		let body;
+
+		if (init.body !== undefined && init.body !== null) {
+			body = init.body;
+		}
+
+		let headers;
+
+		if (typeof init.headers === 'object' && init.headers !== null) {
+			headers = init.headers;
+		} else {
+			headers = {};
+		}
+
+		headers.host = url.host;
+
+		let port;
+
+		if (url.port === '') {
+			if (url.protocol === 'https:') {
+				port = '443';
+			} else {
+				port = '80';
+			}
+		} else {
+			port = url.port;
+		}
+
 		return this.request(
-			init.method || 'GET',
-			init.headers || {},
-			init.body || null,
+			method,
+			headers,
+			body,
 			url.protocol,
 			url.hostname,
-			url.port || url.protocol === 'https:' ? '443' : '80',
+			port,
 			url.pathname + url.search
 		);
 	}
