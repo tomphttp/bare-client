@@ -24,6 +24,11 @@ import ClientV2 from './V2.js';
 
 /**
  * @typedef {object} BareFetchInit
+ * @property {'GET'|'POST'|'DELETE'|'OPTIONS'|'PUT'|'PATCH'|'UPDATE'} [method]
+ * @property {object.<string, string[]>} [headers]
+ * @property {Blob|BufferSource|FormData|URLSearchParams|ReadableStream} [body]
+ * @property {'default'|'no-store'|'reload'|'no-cache'|'force-cache'|'only-if-cached'} [cache]
+ * @returns {BareResponse}
  */
 
 export default class BareClient {
