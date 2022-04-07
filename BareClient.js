@@ -91,9 +91,27 @@ export default class BareClient {
 	 * @param {'default'|'no-store'|'reload'|'no-cache'|'force-cache'|'only-if-cached'} cache
 	 * @returns {BareResponse}
 	 */
-	async request(...args) {
+	async request(
+		method,
+		request_headers,
+		body,
+		protocol,
+		host,
+		port,
+		path,
+		cache
+	) {
 		await this.#work();
-		return this.client.request(...args);
+		return this.client.request(
+			method,
+			request_headers,
+			body,
+			protocol,
+			host,
+			port,
+			path,
+			cache
+		);
 	}
 	/**
 	 *
@@ -104,9 +122,9 @@ export default class BareClient {
 	 * @param {string} path
 	 * @returns {BareWebSocket}
 	 */
-	async connect(...args) {
+	async connect(request_headers, protocol, host, port, path) {
 		await this.#work();
-		return this.client.connect(...args);
+		return this.client.connect(request_headers, protocol, host, port, path);
 	}
 	/**
 	 *
@@ -141,6 +159,14 @@ export default class BareClient {
 
 		headers.host = url.host;
 
+		let cache;
+
+		if (typeof init.cache === 'string') {
+			cache = init.cache;
+		} else {
+			cache = 'default';
+		}
+
 		let port;
 
 		if (url.port === '') {
@@ -160,7 +186,8 @@ export default class BareClient {
 			url.protocol,
 			url.hostname,
 			port,
-			url.pathname + url.search
+			url.pathname + url.search,
+			cache
 		);
 	}
 }
