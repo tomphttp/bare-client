@@ -1,5 +1,4 @@
 import Client, { BareError, statusCache, statusEmpty } from './Client.js';
-import { encodeProtocol } from './encodeProtocol.js';
 import { split_headers, join_headers } from './splitHeaderUtil.js';
 import md5 from 'md5';
 import global from './global.js';
@@ -42,7 +41,7 @@ export default class ClientV2 extends Client {
 
 		const id = await assign_meta.text();
 
-		const socket = new WebSocket(this.ws, [encodeProtocol(id)]);
+		const socket = new WebSocket(this.ws, [id]);
 
 		socket.meta = new Promise((resolve, reject) => {
 			socket.addEventListener('open', async () => {
