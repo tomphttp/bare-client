@@ -94,6 +94,7 @@ export default class BareClient {
 	 * @param {string|number} port
 	 * @param {string} path
 	 * @param {'default'|'no-store'|'reload'|'no-cache'|'force-cache'|'only-if-cached'} cache
+	 * @param {AbortSignal} signal
 	 * @returns {BareResponse}
 	 */
 	async request(
