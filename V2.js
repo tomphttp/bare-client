@@ -69,7 +69,8 @@ export default class ClientV2 extends Client {
 		host,
 		port,
 		path,
-		cache
+		cache,
+		signal
 	) {
 		if (protocol.startsWith('blob:')) {
 			const response = await fetch(`blob:${location.origin}${path}`);
@@ -92,6 +93,7 @@ export default class ClientV2 extends Client {
 		const options = {
 			credentials: 'omit',
 			method: method,
+			signal,
 		};
 
 		if (cache !== 'only-if-cached') {

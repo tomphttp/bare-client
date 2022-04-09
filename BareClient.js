@@ -32,6 +32,7 @@ import ClientV2 from './V2.js';
  * @property {BareHeaders} [headers]
  * @property {Blob|BufferSource|FormData|URLSearchParams|ReadableStream} [body]
  * @property {'default'|'no-store'|'reload'|'no-cache'|'force-cache'|'only-if-cached'} [cache]
+ * @property {AbortSignal} signal
  * @returns {BareResponse}
  */
 
@@ -103,7 +104,8 @@ export default class BareClient {
 		host,
 		port,
 		path,
-		cache
+		cache,
+		signal
 	) {
 		await this.#work();
 		return this.client.request(
@@ -114,7 +116,8 @@ export default class BareClient {
 			host,
 			port,
 			path,
-			cache
+			cache,
+			signal
 		);
 	}
 	/**
@@ -171,6 +174,12 @@ export default class BareClient {
 			cache = 'default';
 		}
 
+		let signal;
+
+		if (init.signal instanceof AbortSignal) {
+			signal = init.signal;
+		}
+
 		let port;
 
 		if (url.port === '') {
@@ -191,7 +200,8 @@ export default class BareClient {
 			url.hostname,
 			port,
 			url.pathname + url.search,
-			cache
+			cache,
+			signal
 		);
 	}
 }

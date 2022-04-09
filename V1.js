@@ -73,7 +73,17 @@ export default class ClientV1 extends Client {
 
 		return socket;
 	}
-	async request(method, request_headers, body, protocol, host, port, path) {
+	async request(
+		method,
+		request_headers,
+		body,
+		protocol,
+		host,
+		port,
+		path,
+		_cache,
+		signal
+	) {
 		if (protocol.startsWith('blob:')) {
 			const response = await fetch(`blob:${location.origin}${path}`);
 			response.jsonHeaders = Object.fromEntries(response.headers.entries());
@@ -97,6 +107,7 @@ export default class ClientV1 extends Client {
 		const options = {
 			credentials: 'omit',
 			method: method,
+			signal,
 		};
 
 		if (body !== undefined) {
