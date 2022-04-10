@@ -6,7 +6,7 @@ import ClientV1 from './V1.js';
 import ClientV2 from './V2.js';
 
 /**
- * @typedef {object.<string, string[]>} BareHeaders
+ * @typedef {object.<string, string|string[]>} BareHeaders
  */
 
 /**
