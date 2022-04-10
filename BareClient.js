@@ -29,7 +29,7 @@ import ClientV2 from './V2.js';
 /**
  * @typedef {object} BareFetchInit
  * @property {'GET'|'POST'|'DELETE'|'OPTIONS'|'PUT'|'PATCH'|'UPDATE'} [method]
- * @property {BareHeaders} [headers]
+ * @property {Headers|BareHeaders} [headers]
  * @property {Blob|BufferSource|FormData|URLSearchParams|ReadableStream} [body]
  * @property {'default'|'no-store'|'reload'|'no-cache'|'force-cache'|'only-if-cached'} [cache]
  * @property {AbortSignal} signal
@@ -136,7 +136,7 @@ export default class BareClient {
 	}
 	/**
 	 *
-	 * @param {URL} url
+	 * @param {string|URL} url
 	 * @param {BareFetchInit} init
 	 * @returns {BareResponse}
 	 */
@@ -160,7 +160,11 @@ export default class BareClient {
 		let headers;
 
 		if (typeof init.headers === 'object' && init.headers !== null) {
-			headers = init.headers;
+			if (init.headers instanceof Headers) {
+				headers = Object.fromEntries(init.headers);
+			} else {
+				headers = init.headers;
+			}
 		} else {
 			headers = {};
 		}
