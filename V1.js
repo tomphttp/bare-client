@@ -129,8 +129,9 @@ export default class ClientV1 extends Client {
 
 		const response = await fetch(request);
 
-		const { status, statusText, headers, rawHeaders } =
-			await this.#read_bare_response(response);
+		const read_response = await this.#read_bare_response(response);
+
+		let { status, statusText, headers, rawHeaders } = read_response;
 
 		let result;
 
