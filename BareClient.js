@@ -16,14 +16,24 @@ import ClientV2 from './V2.js';
 
 /**
  * @description WebSocket with an additional property.
- * @typedef {object} BareWebSocket
+ * @typedef {object} BareWebSocketBase
  * @property {Promise<BareMeta>} meta
  */
 
 /**
+ * @typedef {WebSocket & BareWebSocketBase} BareWebSocket
+ */
+
+/**
  * @description A Response with additional properties.
- * @typedef {object} BareResponse
+ * @typedef {object} BareResponseBase
+ * @property {Response} rawResponse
  * @property {BareHeaders} rawHeaders
+ * @property {boolean} cached
+ */
+
+/**
+ * @typedef {Response & BareResponseBase} BareResponse
  */
 
 /**

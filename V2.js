@@ -144,6 +144,8 @@ export default class ClientV2 extends Client {
 		}
 
 		result.rawHeaders = rawHeaders;
+		result.rawResponse = response;
+		result.cached = statusCache.includes(response.status);
 
 		return result;
 	}
