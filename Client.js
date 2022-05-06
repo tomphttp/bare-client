@@ -1,5 +1,6 @@
 export const statusEmpty = [101, 204, 205, 304];
 export const statusCache = [304];
+export const statusRedirect = [301, 302, 303, 307, 308];
 
 export class BareError extends Error {
 	constructor(status, body) {

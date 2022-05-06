@@ -2,8 +2,11 @@
 // See ../Server/Send.mjs
 
 export * from './Client.js';
+import { statusRedirect } from './Client.js';
 import ClientV1 from './V1.js';
 import ClientV2 from './V2.js';
+
+export const maxRedirects = 20;
 
 /**
  * @typedef {object.<string, string|string[]>} BareHeaders
@@ -42,6 +45,7 @@ import ClientV2 from './V2.js';
  * @property {Headers|BareHeaders} [headers]
  * @property {Blob|BufferSource|FormData|URLSearchParams|ReadableStream} [body]
  * @property {'default'|'no-store'|'reload'|'no-cache'|'force-cache'|'only-if-cached'} [cache]
+ * @property {'follow'|'manual'|'error'} [redirect]
  * @property {AbortSignal} signal
  * @returns {BareResponse}
  */
@@ -195,28 +199,49 @@ export default class BareClient {
 			signal = init.signal;
 		}
 
-		let port;
+		for (let i = 0; ; i++) {
+			let port;
 
-		if (url.port === '') {
-			if (url.protocol === 'https:') {
-				port = '443';
+			if (url.port === '') {
+				if (url.protocol === 'https:') {
+					port = '443';
+				} else {
+					port = '80';
+				}
 			} else {
-				port = '80';
+				port = url.port;
 			}
-		} else {
-			port = url.port;
-		}
 
-		return this.request(
-			method,
-			headers,
-			body,
-			url.protocol,
-			url.hostname,
-			port,
-			url.pathname + url.search,
-			cache,
-			signal
-		);
+			const response = await this.request(
+				method,
+				headers,
+				body,
+				url.protocol,
+				url.hostname,
+				port,
+				url.pathname + url.search,
+				cache,
+				signal
+			);
+
+			if (statusRedirect.includes(response.status)) {
+				switch (init.redirect) {
+					case 'follow':
+						if (maxRedirects > i && response.headers.has('location')) {
+							url = new URL(response.headers.get('location'), url);
+							continue;
+						} else {
+							throw new TypeError('Failed to fetch');
+						}
+					case 'error':
+						throw new TypeError('Failed to fetch');
+					default:
+					case 'manual':
+						return response;
+				}
+			} else {
+				return response;
+			}
+		}
 	}
 }
