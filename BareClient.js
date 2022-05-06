@@ -183,8 +183,6 @@ export default class BareClient {
 			headers = {};
 		}
 
-		headers.host = url.host;
-
 		let cache;
 
 		if (typeof init.cache === 'string') {
@@ -211,6 +209,8 @@ export default class BareClient {
 			} else {
 				port = url.port;
 			}
+
+			headers.host = url.host;
 
 			const response = await this.request(
 				method,
