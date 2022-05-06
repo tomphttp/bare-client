@@ -36,7 +36,16 @@ export const maxRedirects = 20;
  */
 
 /**
+ * @description A Response with additional properties.
+ * @typedef {object} BareResponseFetchBase
+ * @property {string} finalURL Only available on responses from
+ */
+
+/**
  * @typedef {Response & BareResponseBase} BareResponse
+ */
+/**
+ * @typedef {BareResponseBase & BareResponseFetchBase} BareResponseFetch
  */
 
 /**
@@ -152,7 +161,7 @@ export default class BareClient {
 	 *
 	 * @param {string|URL} url
 	 * @param {BareFetchInit} init
-	 * @returns {BareResponse}
+	 * @returns {BareResponseFetch}
 	 */
 	async fetch(url, init = {}) {
 		url = new URL(url);
@@ -223,6 +232,8 @@ export default class BareClient {
 				cache,
 				signal
 			);
+
+			response.finalURL = url.toString();
 
 			if (statusRedirect.includes(response.status)) {
 				switch (init.redirect) {
