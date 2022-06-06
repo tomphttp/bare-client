@@ -237,6 +237,7 @@ export default class BareClient {
 
 			if (statusRedirect.includes(response.status)) {
 				switch (init.redirect) {
+					default:
 					case 'follow':
 						if (maxRedirects > i && response.headers.has('location')) {
 							url = new URL(response.headers.get('location'), url);
@@ -246,7 +247,6 @@ export default class BareClient {
 						}
 					case 'error':
 						throw new TypeError('Failed to fetch');
-					default:
 					case 'manual':
 						return response;
 				}
