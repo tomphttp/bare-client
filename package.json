@@ -27,6 +27,7 @@
 		"import": "./dist/BareClient.esm.js",
 		"require": "./dist/BareClient.umd.js"
 	},
+	"unpkg": "dist/BareClient.umd.min.js",
 	"browser": "dist/BareClient.umd.min.js",
 	"main": "dist/BareClient.umd.js",
 	"module": "dist/BareClient.esm.js",
