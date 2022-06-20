@@ -1,14 +1,12 @@
-const valid_chars =
+const validChars =
 	"!#$%&'*+-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ^_`abcdefghijklmnopqrstuvwxyz|~";
-const reserved_chars = '%';
+const reserveChar = '%';
 
-export function validProtocol(protocol) {
-	protocol = protocol.toString();
-
+export function validProtocol(protocol: string): boolean {
 	for (let i = 0; i < protocol.length; i++) {
 		const char = protocol[i];
 
-		if (!valid_chars.includes(char)) {
+		if (!validChars.includes(char)) {
 			return false;
 		}
 	}
@@ -16,35 +14,30 @@ export function validProtocol(protocol) {
 	return true;
 }
 
-export function encodeProtocol(protocol) {
-	protocol = protocol.toString();
-
+export function encodeProtocol(protocol: string): string {
 	let result = '';
 
 	for (let i = 0; i < protocol.length; i++) {
 		const char = protocol[i];
 
-		if (valid_chars.includes(char) && !reserved_chars.includes(char)) {
+		if (validChars.includes(char) && char !== reserveChar) {
 			result += char;
 		} else {
-			const code = char.charCodeAt();
-			result += '%' + code.toString(16).padStart(2, 0);
+			const code = char.charCodeAt(0);
+			result += reserveChar + code.toString(16).padStart(2, '0');
 		}
 	}
 
 	return result;
 }
 
-export function decodeProtocol(protocol) {
-	if (typeof protocol != 'string')
-		throw new TypeError('protocol must be a string');
-
+export function decodeProtocol(protocol: string): string {
 	let result = '';
 
 	for (let i = 0; i < protocol.length; i++) {
 		const char = protocol[i];
 
-		if (char == '%') {
+		if (char === reserveChar) {
 			const code = parseInt(protocol.slice(i + 1, i + 3), 16);
 			const decoded = String.fromCharCode(code);
 
