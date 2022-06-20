@@ -6,6 +6,12 @@ import { BareError } from './Client';
 
 const MAX_HEADER_VALUE = 3072;
 
+/**
+ *
+ * Splits headers according to spec
+ * @param headers
+ * @returns Split headers
+ */
 export function splitHeaders(headers: Readonly<Headers>): Headers {
 	const output = new Headers(headers);
 
@@ -30,7 +36,9 @@ export function splitHeaders(headers: Readonly<Headers>): Headers {
 }
 
 /**
- * Joins headers in object, according to spec
+ * Joins headers according to spec
+ * @param headers
+ * @returns Joined headers
  */
 export function joinHeaders(headers: Readonly<Headers>): Headers {
 	const output = new Headers(headers);

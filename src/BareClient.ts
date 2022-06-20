@@ -4,13 +4,14 @@
 export * from './Client';
 
 import { GenericClient, statusRedirect } from './Client';
+import { validProtocol } from './encodeProtocol';
 import ClientV1 from './V1';
 import ClientV2 from './V2';
 
-const clientCtors: { [key: string]: { new (server: URL): GenericClient } } = {
-	v1: ClientV1,
-	v2: ClientV2,
-};
+const clientCtors: [string, { new (server: URL): GenericClient }][] = [
+	['v2', ClientV2],
+	['v1', ClientV1],
+];
 
 export type BareMethod =
 	| 'GET'
@@ -81,38 +82,44 @@ export type BareFetchInit = {
 	signal?: AbortSignal;
 };
 
-export type BareClientData = {
-	maintainer?: {
-		email?: string;
-		website?: string;
-	};
-	project?: {
-		name?: string;
-		description?: string;
-		email?: string;
-		website?: string;
-		repository?: string;
-	};
+export type BareMaintainer = {
+	email?: string;
+	website?: string;
+};
+
+export type BareProject = {
+	name?: string;
+	description?: string;
+	email?: string;
+	website?: string;
+	repository?: string;
+};
+
+export type BareLanguage =
+	| 'JS'
+	| 'TS'
+	| 'Java'
+	| 'PHP'
+	| 'Rust'
+	| 'C'
+	| 'C++'
+	| 'C#'
+	| 'Ruby'
+	| 'Go'
+	| 'Crystal'
+	| 'Bash'
+	| string;
+
+export type BareManifest = {
+	maintainer?: BareMaintainer;
+	project?: BareProject;
 	versions: string[];
-	language:
-		| 'JS'
-		| 'TS'
-		| 'Java'
-		| 'PHP'
-		| 'Rust'
-		| 'C'
-		| 'C++'
-		| 'C#'
-		| 'Ruby'
-		| 'Go'
-		| 'Crystal'
-		| 'Bash'
-		| string;
+	language: BareLanguage;
 	memoryUsage?: number;
 };
 
 export default class BareClient {
-	data: BareClientData | undefined;
+	data: BareManifest | undefined;
 	private client: GenericClient | undefined;
 	private server: URL;
 	private ready: boolean;
@@ -121,7 +128,7 @@ export default class BareClient {
 	 * @param server A full URL to the bare server.
 	 * @param data The a copy of the Bare server data found in BareClient.data. If specified, this data will be loaded. Otherwise, a request will be made to the bare server (upon fetching or creating a WebSocket).
 	 */
-	constructor(server: string | URL, data?: BareClientData) {
+	constructor(server: string | URL, data?: BareManifest) {
 		this.server = new URL(server);
 		this.ready = false;
 
@@ -129,13 +136,11 @@ export default class BareClient {
 			this.loadData(data);
 		}
 	}
-	private loadData(data: BareClientData) {
+	private loadData(data: BareManifest) {
 		let found = false;
 
 		// newest-oldest
-		for (const version in clientCtors) {
-			const ctor = clientCtors[version];
-
+		for (const [version, ctor] of clientCtors) {
 			if (data.versions.includes(version)) {
 				this.client = new ctor(this.server);
 				found = true;
@@ -198,6 +203,59 @@ export default class BareClient {
 	): Promise<BareWebSocket> {
 		await this.work();
 		return this.client!.connect(requestHeaders, protocol, host, port, path);
+	}
+	/**
+	 *
+	 * @param url
+	 * @param protocols
+	 * @param origin Location of client that created the WebSocket
+	 * @returns
+	 */
+	async createWebSocket(
+		url: urlLike,
+		headers: BareHeaders = {},
+		protocols: string | string[] = []
+	): Promise<BareWebSocket> {
+		const requestHeaders: BareHeaders =
+			headers instanceof Headers ? Object.fromEntries(headers) : headers;
+
+		url = new URL(url);
+
+		// user is expected to specify user-agent and origin
+		// both are in spec
+
+		requestHeaders['Host'] = url.host;
+		// requestHeaders['Origin'] = origin;
+		requestHeaders['Pragma'] = 'no-cache';
+		requestHeaders['Cache-Control'] = 'no-cache';
+		requestHeaders['Upgrade'] = 'websocket';
+		// requestHeaders['User-Agent'] = navigator.userAgent;
+		requestHeaders['Connection'] = 'Upgrade';
+
+		if (typeof protocols === 'string') {
+			protocols = [protocols];
+		}
+
+		for (const proto of protocols) {
+			if (!validProtocol(proto)) {
+				throw new DOMException(
+					`Failed to construct 'WebSocket': The subprotocol '${proto}' is invalid.`
+				);
+			}
+		}
+
+		if (protocols.length) {
+			headers['Sec-Websocket-Protocol'] = protocols.join(', ');
+		}
+
+		await this.work();
+		return this.client!.connect(
+			headers,
+			url.protocol,
+			url.hostname,
+			url.port,
+			url.pathname + url.search
+		);
 	}
 	async fetch(
 		url: urlLike,
