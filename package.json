@@ -18,7 +18,8 @@
 	"scripts": {
 		"build": "rollup -c",
 		"prepare": "husky install",
-		"lint": "eslint ./src/"
+		"lint": "eslint ./src/",
+		"publish": ""
 	},
 	"license": "GPL-3.0",
 	"type": "module",

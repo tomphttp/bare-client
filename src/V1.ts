@@ -103,7 +103,10 @@ export default class ClientV1 extends Client implements GenericClient {
 	): Promise<BareResponse> {
 		if (protocol.startsWith('blob:')) {
 			const response = await fetch(`blob:${location.origin}${path}`);
-			const result: Response & Partial<BareResponse> = new Response(response.body, response);
+			const result: Response & Partial<BareResponse> = new Response(
+				response.body,
+				response
+			);
 
 			result.rawHeaders = Object.fromEntries(response.headers);
 			result.rawResponse = response;
@@ -152,11 +155,14 @@ export default class ClientV1 extends Client implements GenericClient {
 
 		const readResponse = await this.readBareResponse(response);
 
-		const result: Partial<BareResponse> = new Response(statusEmpty.includes(readResponse.status) ? undefined : response.body, {
-			status: readResponse.status,
-			statusText: readResponse.statusText ?? undefined,
-			headers: readResponse.headers,
-		});
+		const result: Partial<BareResponse> = new Response(
+			statusEmpty.includes(readResponse.status) ? undefined : response.body,
+			{
+				status: readResponse.status,
+				statusText: readResponse.statusText ?? undefined,
+				headers: readResponse.headers,
+			}
+		);
 
 		result.rawHeaders = readResponse.rawHeaders;
 		result.rawResponse = response;
@@ -169,7 +175,9 @@ export default class ClientV1 extends Client implements GenericClient {
 		}
 
 		const requiredHeaders = [
-			'x-bare-status', 'x-bare-status-text', 'x-bare-headers'
+			'x-bare-status',
+			'x-bare-status-text',
+			'x-bare-headers',
 		];
 
 		for (const header of requiredHeaders) {
@@ -200,7 +208,7 @@ export default class ClientV1 extends Client implements GenericClient {
 		path: string,
 		port: string | number,
 		bareHeaders: BareHeaders,
-		forwardHeaders: string[],
+		forwardHeaders: string[]
 	) {
 		request.headers.set('x-bare-protocol', protocol);
 		request.headers.set('x-bare-host', host);

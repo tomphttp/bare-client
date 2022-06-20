@@ -1,11 +1,17 @@
 import md5 from 'md5';
 
-import { BareHeaders, BareWSProtocol, BareWebSocket, BareResponse, BareCache, BareHTTPProtocol, BareBodyInit, BareMethod, XBare } from './BareClient';
-import Client, {
-	BareError,
-	GenericClient,
-	statusEmpty,
-} from './Client';
+import {
+	BareHeaders,
+	BareWSProtocol,
+	BareWebSocket,
+	BareResponse,
+	BareCache,
+	BareHTTPProtocol,
+	BareBodyInit,
+	BareMethod,
+	XBare,
+} from './BareClient';
+import Client, { BareError, GenericClient, statusEmpty } from './Client';
 import { joinHeaders, splitHeaders } from './splitHeaderUtil';
 
 export default class ClientV2 extends Client implements GenericClient {
@@ -65,7 +71,7 @@ export default class ClientV2 extends Client implements GenericClient {
 					method: 'GET',
 				});
 
-				resolve(await (await this.readBareResponse(outgoing)));
+				resolve(await await this.readBareResponse(outgoing));
 			});
 
 			socket.addEventListener('error', reject);
@@ -86,7 +92,10 @@ export default class ClientV2 extends Client implements GenericClient {
 	): Promise<BareResponse> {
 		if (protocol.startsWith('blob:')) {
 			const response = await fetch(`blob:${location.origin}${path}`);
-			const result: Response & Partial<BareResponse> = new Response(response.body, response);
+			const result: Response & Partial<BareResponse> = new Response(
+				response.body,
+				response
+			);
 
 			result.rawHeaders = Object.fromEntries(response.headers);
 			result.rawResponse = response;
@@ -120,11 +129,13 @@ export default class ClientV2 extends Client implements GenericClient {
 			options.body = body;
 		}
 
-		options.headers = this.createBareHeaders(	protocol,
+		options.headers = this.createBareHeaders(
+			protocol,
 			host,
 			path,
 			port,
-			bareHeaders)
+			bareHeaders
+		);
 
 		const request = new Request(
 			this.http + '?cache=' + md5(`${protocol}${host}${port}${path}`),
@@ -135,11 +146,14 @@ export default class ClientV2 extends Client implements GenericClient {
 
 		const readResponse = await this.readBareResponse(response);
 
-		const result: Response & Partial<BareResponse> = new Response(statusEmpty.includes(readResponse.status!) ? undefined : response.body, {
-			status: readResponse.status!,
-			statusText: readResponse.statusText??undefined,
-			headers: readResponse.headers!,
-		});
+		const result: Response & Partial<BareResponse> = new Response(
+			statusEmpty.includes(readResponse.status!) ? undefined : response.body,
+			{
+				status: readResponse.status!,
+				statusText: readResponse.statusText ?? undefined,
+				headers: readResponse.headers!,
+			}
+		);
 
 		result.rawHeaders = readResponse.rawHeaders;
 		result.rawResponse = response;
@@ -153,35 +167,35 @@ export default class ClientV2 extends Client implements GenericClient {
 
 		const responseHeaders = joinHeaders(response.headers);
 
-		const result: XBare = {}
-		
+		const result: XBare = {};
+
 		if (responseHeaders.has('x-bare-status')) {
 			result.status = parseInt(responseHeaders.get('x-bare-status')!);
 		}
-		
+
 		if (responseHeaders.has('x-bare-status-text')) {
 			result.statusText = responseHeaders.get('x-bare-status-text')!;
 		}
-		
+
 		if (responseHeaders.has('x-bare-headers')) {
 			result.rawHeaders = JSON.parse(responseHeaders.get('x-bare-headers')!);
 			result.headers = new Headers(<HeadersInit>result.rawHeaders);
 		}
-		
-		return result; 
+
+		return result;
 	}
 	createBareHeaders(
-		protocol: BareWSProtocol|BareHTTPProtocol,
+		protocol: BareWSProtocol | BareHTTPProtocol,
 		host: string,
 		path: string,
-		port: number|string,
+		port: number | string,
 		bareHeaders: BareHeaders,
 		forwardHeaders: string[] = [],
 		passHeaders: string[] = [],
 		passStatus: number[] = []
 	) {
 		const headers = new Headers();
-		
+
 		headers.set('x-bare-protocol', protocol);
 		headers.set('x-bare-host', host);
 		headers.set('x-bare-path', path);
