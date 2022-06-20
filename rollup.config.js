@@ -22,6 +22,7 @@ export default [
 			file: 'dist/BareClient.es.js',
 			format: 'es',
 			exports: 'default',
+			sourcemap: true,
 		},
 		plugins: [
 			inject({
@@ -43,6 +44,7 @@ export default [
 			exports: 'default',
 			name: 'BareClient',
 			indent: false,
+			sourcemap: true,
 		},
 		plugins: [
 			inject({

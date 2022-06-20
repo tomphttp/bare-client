@@ -8,7 +8,8 @@
 		"stripInternal": true,
 		"module": "ES6",
 		"moduleResolution": "node",
-		"allowSyntheticDefaultImports": true
+		"allowSyntheticDefaultImports": true,
+		"declaration": true
 	},
 	"include": ["src"]
 }
