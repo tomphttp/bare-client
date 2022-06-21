@@ -96,8 +96,8 @@ export type BareProject = {
 };
 
 export type BareLanguage =
-	| 'JS'
-	| 'TS'
+	| 'NodeJS'
+	| 'Deno'
 	| 'Java'
 	| 'PHP'
 	| 'Rust'
