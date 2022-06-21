@@ -6,14 +6,16 @@ import { terser } from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript2';
 
 export default [
-	['esm', 'src/BareClient.ts', 'named', [false]], // import
-	['umd', 'src/index.ts', 'default', [true, false]], // require, minify for browser
+	['esm', 'src/BareClient.ts', 'named', false, [false]], // import
+	['umd', 'src/index.ts', 'default', true, [true, false]], // require, minify for browser
 ]
-	.map(([format, input, exports, modes]) =>
+	.map(([format, input, exports, commonjs, modes]) =>
 		modes.map(minify => ({
 			input,
 			output: {
-				file: `dist/BareClient.${format}${minify ? '.min' : ''}.js`,
+				file: `dist/BareClient.${format}${minify ? '.min' : ''}${
+					commonjs ? '.cjs' : '.js'
+				}`,
 				format,
 				name: 'BareClient',
 				exports,

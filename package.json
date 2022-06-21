@@ -25,11 +25,11 @@
 	"license": "GPL-3.0",
 	"exports": {
 		"import": "./dist/BareClient.esm.js",
-		"require": "./dist/BareClient.umd.js"
+		"require": "./dist/BareClient.umd.cjs"
 	},
-	"unpkg": "dist/BareClient.umd.min.js",
-	"browser": "dist/BareClient.umd.min.js",
-	"main": "dist/BareClient.umd.js",
+	"unpkg": "dist/BareClient.umd.min.cjs",
+	"browser": "dist/BareClient.umd.min.cjs",
+	"main": "dist/BareClient.umd.cjs",
 	"module": "dist/BareClient.esm.js",
 	"types": "dist/BareClient.d.ts",
 	"files": [
