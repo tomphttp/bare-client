@@ -7,7 +7,7 @@ This package implements the [TompHTTP Bare Server](https://github.com/tomphttp/s
 Script tag:
 
 ```html
-<script src="https://unpkg.com/@tomphttp/bare-client@1.0.2-beta-readme1/dist/BareClient.umd.min.js"></script>
+<script src="https://unpkg.com/@tomphttp/bare-client@1.0.2-beta-readme3/dist/BareClient.umd.min.cjs"></script>
 ```
 
 1. Install
