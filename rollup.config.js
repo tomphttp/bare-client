@@ -7,7 +7,7 @@ import typescript from 'rollup-plugin-typescript2';
 
 export default [
 	['esm', 'src/BareClient.ts', 'named', [false]], // import
-	['umd', 'src/index.ts', 'default', [(true, false)]], // require, minify for browser
+	['umd', 'src/index.ts', 'default', [true, false]], // require, minify for browser
 ]
 	.map(([format, input, exports, modes]) =>
 		modes.map(minify => ({

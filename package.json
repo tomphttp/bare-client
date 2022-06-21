@@ -17,9 +17,9 @@
 	},
 	"scripts": {
 		"build": "rollup -c",
+		"build:watch": "rollup -cw",
 		"prepare": "node ./scripts/prepare.js",
-		"lint": "eslint ./src/",
-		"publish": ""
+		"lint": "eslint ./src/"
 	},
 	"type": "module",
 	"license": "GPL-3.0",
@@ -33,7 +33,8 @@
 	"module": "dist/BareClient.esm.js",
 	"types": "dist/BareClient.d.ts",
 	"files": [
-		"dist"
+		"dist",
+		"scripts"
 	],
 	"devDependencies": {
 		"@rollup/plugin-babel": "^5.3.1",
