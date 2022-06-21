@@ -9,12 +9,12 @@ export default [
 	['esm', 'src/BareClient.ts', 'named', false, [false]], // import
 	['umd', 'src/index.ts', 'default', true, [true, false]], // require, minify for browser
 ]
-	.map(([format, input, exports, commonjs, modes]) =>
+	.map(([format, input, exports, cjs, modes]) =>
 		modes.map(minify => ({
 			input,
 			output: {
 				file: `dist/BareClient.${format}${minify ? '.min' : ''}${
-					commonjs ? '.cjs' : '.js'
+					cjs ? '.cjs' : '.js'
 				}`,
 				format,
 				name: 'BareClient',
