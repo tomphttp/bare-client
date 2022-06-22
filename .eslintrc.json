@@ -22,17 +22,18 @@
 	"rules": {
 		"indent": "off",
 		"quotes": "off",
-		"no-constant-condition": [
-			"error",
-			{
-				"checkLoops": false
-			}
-		],
+		"no-mixed-spaces-and-tabs": "off",
 		"no-lone-blocks": "off",
 		"eqeqeq": "error",
 		"prefer-const": "error",
 		"no-var": "error",
 		"@typescript-eslint/no-non-null-assertion": "off",
-		"@typescript-eslint/ban-ts-comment": "off"
+		"@typescript-eslint/ban-ts-comment": "off",
+		"no-constant-condition": [
+			"error",
+			{
+				"checkLoops": false
+			}
+		]
 	}
 }
