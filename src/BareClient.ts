@@ -8,7 +8,7 @@ import { validProtocol } from './encodeProtocol';
 import ClientV1 from './V1';
 import ClientV2 from './V2';
 
-const clientCtors: [string, { new(server: URL): GenericClient }][] = [
+const clientCtors: [string, { new (server: URL): GenericClient }][] = [
 	['v2', ClientV2],
 	['v1', ClientV1],
 ];
@@ -335,18 +335,18 @@ export default class BareClient {
 
 			if (statusRedirect.includes(response.status)) {
 				switch (init.redirect) {
-				default:
-				case 'follow':
-					if (maxRedirects > i && response.headers.has('location')) {
-						url = new URL(response.headers.get('location')!, url);
-						continue;
-					} else {
+					default:
+					case 'follow':
+						if (maxRedirects > i && response.headers.has('location')) {
+							url = new URL(response.headers.get('location')!, url);
+							continue;
+						} else {
+							throw new TypeError('Failed to fetch');
+						}
+					case 'error':
 						throw new TypeError('Failed to fetch');
-					}
-				case 'error':
-					throw new TypeError('Failed to fetch');
-				case 'manual':
-					return <BareResponseFetch>response;
+					case 'manual':
+						return <BareResponseFetch>response;
 				}
 			} else {
 				return <BareResponseFetch>response;

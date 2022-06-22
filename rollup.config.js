@@ -9,7 +9,7 @@ export default [
 	['umd', 'src/index.ts', 'default', true, [true, false]], // require, minify for browser
 ]
 	.map(([format, input, exports, cjs, modes]) =>
-		modes.map(minify => ({
+		modes.map((minify) => ({
 			input,
 			output: {
 				file: `dist/BareClient.${format}${minify ? '.min' : ''}${
@@ -23,7 +23,7 @@ export default [
 				inject(
 					Object.fromEntries(
 						['fetch', 'Request', 'Response', 'WebSocket', 'XMLHttpRequest'].map(
-							name => [resolve('src/snapshot.ts'), name]
+							(name) => [resolve('src/snapshot.ts'), name]
 						)
 					)
 				),
