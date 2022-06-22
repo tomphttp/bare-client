@@ -18,8 +18,7 @@
 	"scripts": {
 		"build": "rollup -c",
 		"build:watch": "rollup -cw",
-		"prepare": "node ./scripts/prepare.js",
-		"lint": "eslint ./src/"
+		"prepare": "node ./scripts/prepare.js"
 	},
 	"type": "module",
 	"license": "GPL-3.0",
