@@ -55,10 +55,5 @@
 	},
 	"lint-staged": {
 		"*.{mjs, js, ts, json}": "prettier --write"
-	},
-	"importSort": {
-		".mjs, .js, .jsx, .ts, .tsx": {
-			"style": "module"
-		}
 	}
 }
