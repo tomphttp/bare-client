@@ -1,12 +1,12 @@
 import {
 	BareBodyInit,
 	BareCache,
-	BareHTTPProtocol,
 	BareHeaders,
+	BareHTTPProtocol,
 	BareMethod,
 	BareResponse,
-	BareWSProtocol,
 	BareWebSocket,
+	BareWSProtocol,
 	XBare,
 } from './BareClient.js';
 import Client, { BareError, GenericClient, statusEmpty } from './Client.js';

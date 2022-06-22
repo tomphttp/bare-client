@@ -1,17 +1,16 @@
-import md5 from './md5';
-
 import {
-	BareHeaders,
-	BareWSProtocol,
-	BareWebSocket,
-	BareResponse,
-	BareCache,
-	BareHTTPProtocol,
 	BareBodyInit,
+	BareCache,
+	BareHeaders,
+	BareHTTPProtocol,
 	BareMethod,
+	BareResponse,
+	BareWebSocket,
+	BareWSProtocol,
 	XBare,
 } from './BareClient';
 import Client, { BareError, GenericClient, statusEmpty } from './Client';
+import md5 from './md5';
 import { joinHeaders, splitHeaders } from './splitHeaderUtil';
 
 export default class ClientV2 extends Client implements GenericClient {

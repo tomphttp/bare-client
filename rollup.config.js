@@ -1,7 +1,6 @@
-import { resolve } from 'path';
-
 import babel from '@rollup/plugin-babel';
 import inject from '@rollup/plugin-inject';
+import { resolve } from 'path';
 import { terser } from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript2';
 

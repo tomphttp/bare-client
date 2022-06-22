@@ -1,12 +1,12 @@
 import {
 	BareBodyInit,
 	BareCache,
-	BareHTTPProtocol,
 	BareHeaders,
+	BareHTTPProtocol,
 	BareMethod,
 	BareResponse,
-	BareWSProtocol,
 	BareWebSocket,
+	BareWSProtocol,
 } from './BareClient';
 
 export const statusEmpty = [101, 204, 205, 304];
