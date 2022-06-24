@@ -1,12 +1,12 @@
+import { GenericClient, statusRedirect } from './Client';
+import ClientV1 from './V1';
+import ClientV2 from './V2';
+import { validProtocol } from './encodeProtocol';
+
 // Implements the protocol for requesting bare data from a server
 // See ../Server/Send.mjs
 
 export * from './Client';
-
-import { GenericClient, statusRedirect } from './Client';
-import { validProtocol } from './encodeProtocol';
-import ClientV1 from './V1';
-import ClientV2 from './V2';
 
 const clientCtors: [string, { new (server: URL): GenericClient }][] = [
 	['v2', ClientV2],
