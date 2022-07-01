@@ -71,7 +71,8 @@ export type BareBodyInit =
 	| FormData
 	| URLSearchParams
 	| ReadableStream
-	| undefined;
+	| undefined
+	| null;
 
 export type BareFetchInit = {
 	method?: BareMethod;
@@ -258,10 +259,20 @@ export default class BareClient {
 		);
 	}
 	async fetch(
-		url: urlLike,
+		url: urlLike | Request,
 		init: BareFetchInit = {}
 	): Promise<BareResponseFetch> {
-		url = new URL(url);
+		if (url instanceof Request) {
+			// behave similar to the browser when fetch is called with (Request, Init)
+			if (init) {
+				url = new URL(url.url);
+			} else {
+				init = url;
+				url = new URL(url.url);
+			}
+		} else {
+			url = new URL(url);
+		}
 
 		let method: BareMethod;
 
