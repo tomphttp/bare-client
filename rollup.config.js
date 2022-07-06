@@ -20,14 +20,14 @@ export default [
 				exports,
 			},
 			plugins: [
+				typescript(),
 				inject(
 					Object.fromEntries(
 						['fetch', 'Request', 'Response', 'WebSocket', 'XMLHttpRequest'].map(
-							(name) => [resolve('src/snapshot.ts'), name]
+							(name) => [name, [resolve('src/snapshot.ts'), name]]
 						)
 					)
 				),
-				typescript(),
 				babel({ babelHelpers: 'bundled', extensions: ['.ts'] }),
 				minify && terser(),
 			],
