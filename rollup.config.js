@@ -1,6 +1,7 @@
 import babel from '@rollup/plugin-babel';
 import inject from '@rollup/plugin-inject';
 import { resolve } from 'path';
+import sourcemaps from 'rollup-plugin-sourcemaps';
 import { terser } from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript2';
 
@@ -17,19 +18,26 @@ export default [
 				}`,
 				format,
 				name: 'BareClient',
+				sourcemap: true,
 				exports,
 			},
 			plugins: [
 				typescript(),
 				inject(
 					Object.fromEntries(
-						['fetch', 'Request', 'Response', 'WebSocket', 'XMLHttpRequest'].map(
-							(name) => [name, [resolve('src/snapshot.ts'), name]]
-						)
+						[
+							'global',
+							'fetch',
+							'Request',
+							'Response',
+							'WebSocket',
+							'XMLHttpRequest',
+						].map((name) => [name, [resolve('src/snapshot.ts'), name]])
 					)
 				),
 				babel({ babelHelpers: 'bundled', extensions: ['.ts'] }),
 				minify && terser(),
+				sourcemaps(),
 			],
 		}))
 	)

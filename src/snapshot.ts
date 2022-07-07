@@ -3,6 +3,7 @@
 
 // These exports are provided to plugins by @rollup/plugin-inject
 
+export const global = globalThis;
 export const fetch = global.fetch;
 export const WebSocket = global.WebSocket;
 export const Request = global.Request;
