@@ -129,7 +129,7 @@ export default class ClientV1 extends Client implements GenericClient {
 		const forwardHeaders = ['accept-encoding', 'accept-language'];
 
 		const options: RequestInit = {
-			credentials: 'include',
+			credentials: 'omit',
 			method: method,
 			signal,
 		};

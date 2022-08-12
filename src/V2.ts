@@ -115,7 +115,7 @@ export default class ClientV2 extends Client implements GenericClient {
 		}
 
 		const options: RequestInit = {
-			credentials: 'include',
+			credentials: 'omit',
 			method: method,
 			signal,
 		};
