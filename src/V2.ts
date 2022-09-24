@@ -1,4 +1,4 @@
-import {
+import type {
 	BareBodyInit,
 	BareCache,
 	BareHeaders,
@@ -9,7 +9,8 @@ import {
 	BareWSProtocol,
 	XBare,
 } from './BareClient';
-import Client, { BareError, GenericClient, statusEmpty } from './Client';
+import type { GenericClient} from './Client';
+import Client, { BareError, statusEmpty } from './Client';
 import md5 from './md5';
 import { joinHeaders, splitHeaders } from './splitHeaderUtil';
 

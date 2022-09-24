@@ -1,4 +1,4 @@
-import {
+import type {
 	BareBodyInit,
 	BareCache,
 	BareHeaders,
@@ -9,7 +9,8 @@ import {
 	BareWSProtocol,
 	XBare,
 } from './BareClient.js';
-import Client, { BareError, GenericClient, statusEmpty } from './Client.js';
+import type { GenericClient} from './Client.js';
+import Client, { BareError, statusEmpty } from './Client.js';
 import { encodeProtocol } from './encodeProtocol.js';
 
 export default class ClientV1 extends Client implements GenericClient {

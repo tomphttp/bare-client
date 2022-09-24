@@ -1,4 +1,5 @@
-import { GenericClient, statusRedirect } from './Client';
+import type { GenericClient} from './Client';
+import { statusRedirect } from './Client';
 import ClientV1 from './V1';
 import ClientV2 from './V2';
 import { validProtocol } from './encodeProtocol';
