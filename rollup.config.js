@@ -5,7 +5,10 @@ import sourcemaps from 'rollup-plugin-sourcemaps';
 import { terser } from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript2';
 
-export default [
+/**
+ * @type {import('rollup').RollupOptions[]}
+ */
+const configs = [
 	['esm', 'src/BareClient.ts', 'named', false, [false]], // import
 	['umd', 'src/index.ts', 'default', true, [true, false]], // require, minify for browser
 ]
@@ -42,3 +45,5 @@ export default [
 		}))
 	)
 	.flat(1);
+
+export default configs;
