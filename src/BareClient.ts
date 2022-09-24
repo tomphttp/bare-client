@@ -95,6 +95,7 @@ export type BareProject = {
 	email?: string;
 	website?: string;
 	repository?: string;
+	version?: string;
 };
 
 export type BareLanguage =
