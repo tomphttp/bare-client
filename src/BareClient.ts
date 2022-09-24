@@ -1,4 +1,4 @@
-import type { GenericClient} from './Client';
+import type { GenericClient } from './Client';
 import { statusRedirect } from './Client';
 import ClientV1 from './V1';
 import ClientV2 from './V2';
@@ -99,6 +99,7 @@ export type BareProject = {
 
 export type BareLanguage =
 	| 'NodeJS'
+	| 'ServiceWorker'
 	| 'Deno'
 	| 'Java'
 	| 'PHP'
@@ -109,7 +110,7 @@ export type BareLanguage =
 	| 'Ruby'
 	| 'Go'
 	| 'Crystal'
-	| 'Bash'
+	| 'Shell'
 	| string;
 
 export type BareManifest = {
