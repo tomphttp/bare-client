@@ -1,4 +1,3 @@
-import babel from '@rollup/plugin-babel';
 import inject from '@rollup/plugin-inject';
 import { resolve } from 'path';
 import sourcemaps from 'rollup-plugin-sourcemaps';
@@ -38,7 +37,6 @@ const configs = [
 						].map((name) => [name, [resolve('src/snapshot.ts'), name]])
 					)
 				),
-				babel({ babelHelpers: 'bundled', extensions: ['.ts'] }),
 				minify && terser(),
 				sourcemaps(),
 			],

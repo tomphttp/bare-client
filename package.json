@@ -36,7 +36,6 @@
 	],
 	"devDependencies": {
 		"@ianvs/prettier-plugin-sort-imports": "^3.4.2",
-		"@rollup/plugin-babel": "^5.3.1",
 		"@rollup/plugin-inject": "^4.0.4",
 		"@typescript-eslint/eslint-plugin": "^5.31.0",
 		"@typescript-eslint/parser": "^5.31.0",
