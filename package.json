@@ -31,8 +31,7 @@
 	"module": "dist/BareClient.esm.js",
 	"types": "dist/BareClient.d.ts",
 	"files": [
-		"dist",
-		"scripts"
+		"dist"
 	],
 	"devDependencies": {
 		"@ianvs/prettier-plugin-sort-imports": "^3.4.2",
