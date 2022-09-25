@@ -16,19 +16,18 @@
 		"url": "https://github.com/tomphttp"
 	},
 	"scripts": {
-		"build": "rollup -c",
-		"build:watch": "rollup -cw"
+		"build": "ts-node-esm node_modules/rollup/dist/bin/rollup -c",
+		"build:watch": "ts-node-esm node_modules/rollup/dist/bin/rollup -cw"
 	},
 	"type": "module",
 	"license": "GPL-3.0",
 	"exports": {
-		"import": "./dist/BareClient.esm.js",
-		"require": "./dist/BareClient.umd.cjs"
+		"import": "./dist/BareClient.js",
+		"require": "./dist/BareClient.cjs"
 	},
-	"unpkg": "dist/BareClient.umd.min.cjs",
-	"browser": "dist/BareClient.umd.min.cjs",
-	"main": "dist/BareClient.umd.cjs",
-	"module": "dist/BareClient.esm.js",
+	"browser": "dist/BareClient.cjs",
+	"main": "dist/BareClient.cjs",
+	"module": "dist/BareClient.js",
 	"types": "dist/BareClient.d.ts",
 	"files": [
 		"dist"
@@ -42,7 +41,7 @@
 		"prettier": "^2.7.1",
 		"rollup": "^2.77.2",
 		"rollup-plugin-sourcemaps": "^0.6.3",
-		"rollup-plugin-terser": "^7.0.2",
-		"rollup-plugin-typescript2": "^0.32.1"
+		"rollup-plugin-typescript2": "^0.32.1",
+		"ts-node": "^10.9.1"
 	}
 }

@@ -1,47 +1,61 @@
 import inject from '@rollup/plugin-inject';
 import { resolve } from 'path';
 import sourcemaps from 'rollup-plugin-sourcemaps';
-import { terser } from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript2';
 
 /**
- * @type {import('rollup').RollupOptions[]}
+ * @typedef {import('rollup').OutputOptions} OutputOptions
+ * @typedef {import('rollup').RollupOptions} RollupOptions
+ */
+
+/**
+ * @returns {RollupOptions['plugins']!}
+ */
+const commonPlugins = () => [
+	typescript(),
+	inject(
+		Object.fromEntries(
+			[
+				'global',
+				'fetch',
+				'Request',
+				'Response',
+				'WebSocket',
+				'XMLHttpRequest',
+			].map((name) => [name, [resolve('src/snapshot.ts'), name]])
+		)
+	),
+	sourcemaps(),
+];
+
+/**
+ * @type {RollupOptions[]}
  */
 const configs = [
-	['esm', 'src/BareClient.ts', 'named', false, [false]], // import
-	['umd', 'src/index.ts', 'default', true, [true, false]], // require, minify for browser
-]
-	.map(([format, input, exports, cjs, modes]) =>
-		modes.map((minify) => ({
-			input,
-			output: {
-				file: `dist/BareClient.${format}${minify ? '.min' : ''}${
-					cjs ? '.cjs' : '.js'
-				}`,
-				format,
-				name: 'BareClient',
-				sourcemap: true,
-				exports,
-			},
-			plugins: [
-				typescript(),
-				inject(
-					Object.fromEntries(
-						[
-							'global',
-							'fetch',
-							'Request',
-							'Response',
-							'WebSocket',
-							'XMLHttpRequest',
-						].map((name) => [name, [resolve('src/snapshot.ts'), name]])
-					)
-				),
-				minify && terser(),
-				sourcemaps(),
-			],
-		}))
-	)
-	.flat(1);
+	// import
+	{
+		input: 'src/BareClient.ts',
+		output: {
+			file: `dist/BareClient.js`,
+			format: 'esm',
+			name: 'BareClient',
+			sourcemap: true,
+			exports: 'named',
+		},
+		plugins: commonPlugins(),
+	},
+	// require, minify for browser
+	{
+		input: 'src/index.ts',
+		output: {
+			file: `dist/BareClient.cjs`,
+			format: 'umd',
+			name: 'createBareClient',
+			sourcemap: true,
+			exports: 'default',
+		},
+		plugins: commonPlugins(),
+	},
+];
 
 export default configs;

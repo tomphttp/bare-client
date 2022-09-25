@@ -1,3 +1,1 @@
-import BareClient from './BareClient';
-
-export default BareClient;
+export { createBareClient as default } from './BareClient';
