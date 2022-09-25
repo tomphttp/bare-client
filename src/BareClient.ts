@@ -144,8 +144,8 @@ export default class BareClient {
 	get data(): BareClient['manfiest'] {
 		return this.manfiest;
 	}
-	manfiest: BareManifest | undefined;
-	private client: GenericClient | undefined;
+	manfiest?: BareManifest;
+	private client?: GenericClient;
 	private server: URL;
 	private working: Promise<void>;
 	/**
