@@ -147,31 +147,37 @@ export default class BareClient {
 	manfiest?: BareManifest;
 	private client?: GenericClient;
 	private server: URL;
-	private working: Promise<void>;
+	private working?: Promise<void>;
+	private onDemand: boolean;
 	/**
-	 * Lazily create a BareClient. This differs from v1.0.5, whereas now the server is immediately fetched.
+	 * Lazily create a BareClient. Calls to fetch and connect will request the manifest once on-demand.
 	 * @param server A full URL to the bare server.
-	 * @deprecated Use the async `createBareClient()` instead.
 	 */
 	constructor(server: string | URL);
 	/**
-	 *
+	 * Immediately create a BareClient.
 	 * @param server A full URL to the bare server.
-	 * @param manfiest A Bare server manifest.  If specified, this manfiest will be loaded. Otherwise, a request will be made to the bare server immediately.
+	 * @param manfiest A Bare server manifest.
 	 */
 	constructor(server: string | URL, manfiest: BareManifest);
 	constructor(server: string | URL, manfiest?: BareManifest) {
 		this.server = new URL(server);
 
 		if (manfiest) {
-			this.working = Promise.resolve();
+			this.onDemand = false;
 			this.manfiest = manfiest;
 			this.getClient();
-		} else
-			this.working = fetchManifest(server).then((manfiest) => {
-				this.manfiest = manfiest;
-				this.getClient();
-			});
+		} else this.onDemand = true;
+	}
+	private demand() {
+		if (!this.onDemand) return;
+
+		if (this.working) return this.working;
+
+		this.working = fetchManifest(this.server).then((manfiest) => {
+			this.manfiest = manfiest;
+			this.getClient();
+		});
 	}
 	private getClient() {
 		let found = false;
@@ -198,7 +204,8 @@ export default class BareClient {
 		cache: BareCache | undefined,
 		signal: AbortSignal | undefined
 	): Promise<BareResponse> {
-		await this.working;
+		await this.demand();
+
 		return await this.client!.request(
 			method,
 			requestHeaders,
@@ -218,17 +225,18 @@ export default class BareClient {
 		port: string | number,
 		path: string
 	): Promise<BareWebSocket> {
-		await this.working;
+		await this.demand();
+
 		return this.client!.connect(requestHeaders, protocol, host, port, path);
 	}
 	/**
 	 *
 	 * @param url
+	 * @param headers
 	 * @param protocols
-	 * @param origin Location of client that created the WebSocket
 	 * @returns
 	 */
-	async createWebSocket(
+	createWebSocket(
 		url: urlLike,
 		headers: BareHeaders = {},
 		protocols: string | string[] = []
@@ -265,8 +273,7 @@ export default class BareClient {
 			headers['Sec-Websocket-Protocol'] = protocols.join(', ');
 		}
 
-		await this.working;
-		return this.client!.connect(
+		return this.connect(
 			headers,
 			url.protocol,
 			url.hostname,

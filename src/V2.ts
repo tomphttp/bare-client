@@ -9,7 +9,7 @@ import type {
 	BareWSProtocol,
 	XBare,
 } from './BareClient';
-import type { GenericClient} from './Client';
+import type { GenericClient } from './Client';
 import Client, { BareError, statusEmpty } from './Client';
 import md5 from './md5';
 import { joinHeaders, splitHeaders } from './splitHeaderUtil';
