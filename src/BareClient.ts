@@ -149,35 +149,42 @@ export default class BareClient {
 	private server: URL;
 	private working?: Promise<void>;
 	private onDemand: boolean;
+	private onDemandSignal?: AbortSignal;
 	/**
 	 * Lazily create a BareClient. Calls to fetch and connect will request the manifest once on-demand.
 	 * @param server A full URL to the bare server.
+	 * @param signal An abort signal for fetching the manifest on demand.
 	 */
-	constructor(server: string | URL);
+	constructor(server: string | URL, signal?: AbortSignal);
 	/**
 	 * Immediately create a BareClient.
 	 * @param server A full URL to the bare server.
 	 * @param manfiest A Bare server manifest.
 	 */
 	constructor(server: string | URL, manfiest: BareManifest);
-	constructor(server: string | URL, manfiest?: BareManifest) {
+	constructor(server: string | URL, _?: BareManifest | AbortSignal) {
 		this.server = new URL(server);
 
-		if (manfiest) {
+		if (!_ || _ instanceof AbortSignal) {
+			this.onDemand = true;
+			this.onDemandSignal = _;
+		} else {
 			this.onDemand = false;
-			this.manfiest = manfiest;
+			this.manfiest = _;
 			this.getClient();
-		} else this.onDemand = true;
+		}
 	}
 	private demand() {
 		if (!this.onDemand) return;
 
 		if (this.working) return this.working;
 
-		this.working = fetchManifest(this.server).then((manfiest) => {
-			this.manfiest = manfiest;
-			this.getClient();
-		});
+		this.working = fetchManifest(this.server, this.onDemandSignal).then(
+			(manfiest) => {
+				this.manfiest = manfiest;
+				this.getClient();
+			}
+		);
 	}
 	private getClient() {
 		let found = false;
