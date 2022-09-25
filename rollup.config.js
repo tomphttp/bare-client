@@ -1,5 +1,5 @@
 import inject from '@rollup/plugin-inject';
-import { resolve } from 'path';
+import { fileURLToPath } from 'node:url';
 import sourcemaps from 'rollup-plugin-sourcemaps';
 import typescript from 'rollup-plugin-typescript2';
 
@@ -15,14 +15,12 @@ const commonPlugins = () => [
 	typescript(),
 	inject(
 		Object.fromEntries(
-			[
-				'global',
-				'fetch',
-				'Request',
-				'Response',
-				'WebSocket',
-				'XMLHttpRequest',
-			].map((name) => [name, [resolve('src/snapshot.ts'), name]])
+			['fetch', 'Request', 'Response', 'WebSocket', 'XMLHttpRequest'].map(
+				(name) => [
+					name,
+					[fileURLToPath(new URL('./src/snapshot.ts', import.meta.url)), name],
+				]
+			)
 		)
 	),
 	sourcemaps(),
@@ -44,7 +42,7 @@ const configs = [
 		},
 		plugins: commonPlugins(),
 	},
-	// require, minify for browser
+	// require
 	{
 		input: 'src/index.ts',
 		output: {
