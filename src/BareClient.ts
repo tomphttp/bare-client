@@ -122,57 +122,70 @@ export type BareManifest = {
 	memoryUsage?: number;
 };
 
+async function fetchManifest(
+	server: string | URL,
+	signal?: AbortSignal
+): Promise<BareManifest> {
+	const outgoing = await fetch(server, { signal });
+
+	if (!outgoing.ok) {
+		throw new Error(
+			`Unable to fetch Bare meta: ${outgoing.status} ${await outgoing.text()}`
+		);
+	}
+
+	return await outgoing.json();
+}
+
 export default class BareClient {
-	data: BareManifest | undefined;
+	/**
+	 * @depricated Use .manifest instead.
+	 */
+	get data(): BareClient['manfiest'] {
+		return this.manfiest;
+	}
+	manfiest: BareManifest | undefined;
 	private client: GenericClient | undefined;
 	private server: URL;
-	private ready: boolean;
+	private working: Promise<void>;
+	/**
+	 * Lazily create a BareClient. This differs from v1.0.5, whereas now the server is immediately fetched.
+	 * @param server A full URL to the bare server.
+	 * @deprecated Use the async `createBareClient()` instead.
+	 */
+	constructor(server: string | URL);
 	/**
 	 *
 	 * @param server A full URL to the bare server.
-	 * @param data The a copy of the Bare server data found in BareClient.data. If specified, this data will be loaded. Otherwise, a request will be made to the bare server (upon fetching or creating a WebSocket).
+	 * @param manfiest A Bare server manifest.  If specified, this manfiest will be loaded. Otherwise, a request will be made to the bare server immediately.
 	 */
-	constructor(server: string | URL, data?: BareManifest) {
+	constructor(server: string | URL, manfiest: BareManifest);
+	constructor(server: string | URL, manfiest?: BareManifest) {
 		this.server = new URL(server);
-		this.ready = false;
 
-		if (typeof data === 'object') {
-			this.loadData(data);
-		}
+		if (manfiest) {
+			this.working = Promise.resolve();
+			this.manfiest = manfiest;
+			this.getClient();
+		} else
+			this.working = fetchManifest(server).then((manfiest) => {
+				this.manfiest = manfiest;
+				this.getClient();
+			});
 	}
-	private loadData(data: BareManifest) {
+	private getClient() {
 		let found = false;
 
 		// newest-oldest
 		for (const [version, ctor] of clientCtors) {
-			if (data.versions.includes(version)) {
+			if (this.data!.versions.includes(version)) {
 				this.client = new ctor(this.server);
 				found = true;
 				break;
 			}
 		}
 
-		if (!found) {
-			throw new Error(`Unable to find compatible client version.`);
-		}
-
-		this.data = data;
-		this.ready = true;
-	}
-	private async work() {
-		if (this.ready === true) {
-			return;
-		}
-
-		const outgoing = await fetch(this.server);
-
-		if (!outgoing.ok) {
-			throw new Error(
-				`Unable to fetch Bare meta: ${outgoing.status} ${await outgoing.text()}`
-			);
-		}
-
-		this.loadData(await outgoing.json());
+		if (!found) throw new Error(`Unable to find compatible client version.`);
 	}
 	async request(
 		method: BareMethod,
@@ -185,7 +198,7 @@ export default class BareClient {
 		cache: BareCache | undefined,
 		signal: AbortSignal | undefined
 	): Promise<BareResponse> {
-		await this.work();
+		await this.working;
 		return await this.client!.request(
 			method,
 			requestHeaders,
@@ -205,7 +218,7 @@ export default class BareClient {
 		port: string | number,
 		path: string
 	): Promise<BareWebSocket> {
-		await this.work();
+		await this.working;
 		return this.client!.connect(requestHeaders, protocol, host, port, path);
 	}
 	/**
@@ -252,7 +265,7 @@ export default class BareClient {
 			headers['Sec-Websocket-Protocol'] = protocols.join(', ');
 		}
 
-		await this.work();
+		await this.working;
 		return this.client!.connect(
 			headers,
 			url.protocol,
@@ -367,4 +380,19 @@ export default class BareClient {
 			}
 		}
 	}
+}
+
+/**
+ *
+ * Facilitates fetching the Bare server and constructing a BareClient.
+ * @param server Bare server
+ * @param signal Abort signal when fetching the manifest
+ */
+export async function createBareClient(
+	server: string | URL,
+	signal?: AbortSignal
+): Promise<BareClient> {
+	const manfiest = await fetchManifest(server, signal);
+
+	return new BareClient(server, manfiest);
 }
