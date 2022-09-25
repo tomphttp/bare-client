@@ -177,28 +177,26 @@ export default class BareClient {
 	private demand() {
 		if (!this.onDemand) return;
 
-		if (this.working) return this.working;
+		if (!this.working)
+			this.working = fetchManifest(this.server, this.onDemandSignal).then(
+				(manfiest) => {
+					this.manfiest = manfiest;
+					this.getClient();
+				}
+			);
 
-		this.working = fetchManifest(this.server, this.onDemandSignal).then(
-			(manfiest) => {
-				this.manfiest = manfiest;
-				this.getClient();
-			}
-		);
+		return this.working;
 	}
 	private getClient() {
-		let found = false;
-
 		// newest-oldest
 		for (const [version, ctor] of clientCtors) {
 			if (this.data!.versions.includes(version)) {
 				this.client = new ctor(this.server);
-				found = true;
-				break;
+				return;
 			}
 		}
 
-		if (!found) throw new Error(`Unable to find compatible client version.`);
+		throw new Error(`Unable to find compatible client version.`);
 	}
 	async request(
 		method: BareMethod,
