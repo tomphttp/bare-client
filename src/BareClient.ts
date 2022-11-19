@@ -137,6 +137,22 @@ async function fetchManifest(
 	return await outgoing.json();
 }
 
+function resolvePort(url: URL) {
+	if (url.port) return Number(url.port);
+
+	switch (url.protocol) {
+		case 'ws:':
+		case 'http:':
+			return 80;
+		case 'wss:':
+		case 'https:':
+			return 443;
+		default:
+			// maybe blob
+			return 0;
+	}
+}
+
 export default class BareClient {
 	/**
 	 * @depricated Use .manifest instead.
@@ -281,7 +297,7 @@ export default class BareClient {
 			requestHeaders,
 			url.protocol,
 			url.hostname,
-			url.port,
+			resolvePort(url),
 			url.pathname + url.search
 		);
 	}
@@ -342,18 +358,6 @@ export default class BareClient {
 		}
 
 		for (let i = 0; ; i++) {
-			let port;
-
-			if (url.port === '') {
-				if (url.protocol === 'https:') {
-					port = '443';
-				} else {
-					port = '80';
-				}
-			} else {
-				port = url.port;
-			}
-
 			headers.host = url.host;
 
 			const response: BareResponse & Partial<BareResponseFetch> =
@@ -363,7 +367,7 @@ export default class BareClient {
 					body,
 					url.protocol,
 					url.hostname,
-					port,
+					resolvePort(url),
 					url.pathname + url.search,
 					cache,
 					signal
