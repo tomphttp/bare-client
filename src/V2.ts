@@ -50,13 +50,13 @@ export default class ClientV2 extends Client implements GenericClient {
 			),
 		});
 
-		const assign_meta = await fetch(request);
+		const assignMeta = await fetch(request);
 
-		if (!assign_meta.ok) {
-			throw new BareError(assign_meta.status, await assign_meta.json());
+		if (!assignMeta.ok) {
+			throw new BareError(assignMeta.status, await assignMeta.json());
 		}
 
-		const id = await assign_meta.text();
+		const id = await assignMeta.text();
 
 		const socket: WebSocket & Partial<BareWebSocket> = new WebSocket(this.ws, [
 			id,
