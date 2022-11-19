@@ -243,7 +243,7 @@ export default class BareClient {
 	 */
 	createWebSocket(
 		url: urlLike,
-		headers: BareHeaders = {},
+		headers: BareHeaders | Headers = {},
 		protocols: string | string[] = []
 	): Promise<BareWebSocket> {
 		const requestHeaders: BareHeaders =
@@ -274,12 +274,11 @@ export default class BareClient {
 			}
 		}
 
-		if (protocols.length) {
-			headers['Sec-Websocket-Protocol'] = protocols.join(', ');
-		}
+		if (protocols.length)
+			requestHeaders['Sec-Websocket-Protocol'] = protocols.join(', ');
 
 		return this.connect(
-			headers,
+			requestHeaders,
 			url.protocol,
 			url.hostname,
 			url.port,
