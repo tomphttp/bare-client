@@ -177,7 +177,7 @@ export default class BareClient {
 	 * @param server A full URL to the bare server.
 	 * @param manfiest A Bare server manifest.
 	 */
-	constructor(server: string | URL, manfiest: BareManifest);
+	constructor(server: string | URL, manfiest?: BareManifest);
 	constructor(server: string | URL, _?: BareManifest | AbortSignal) {
 		this.server = new URL(server);
 
