@@ -71,7 +71,7 @@ export default class ClientV2 extends Client implements GenericClient {
 					method: 'GET',
 				});
 
-				resolve(await await this.readBareResponse(outgoing));
+				resolve(await this.readBareResponse(outgoing));
 			});
 
 			socket.addEventListener('error', reject);
