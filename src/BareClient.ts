@@ -358,7 +358,8 @@ export default class BareClient {
 		}
 
 		for (let i = 0; ; i++) {
-			headers.host = url.host;
+			if ('host' in headers) headers.host = url.host;
+			else headers.Host = url.host;
 
 			const response: BareResponse & Partial<BareResponseFetch> =
 				await this.request(
