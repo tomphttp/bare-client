@@ -9,7 +9,7 @@ import type {
 	BareWSProtocol,
 	XBare,
 } from './BareClient.js';
-import type { GenericClient} from './Client.js';
+import type { GenericClient } from './Client.js';
 import Client, { BareError, statusEmpty } from './Client.js';
 import { encodeProtocol } from './encodeProtocol.js';
 
@@ -103,7 +103,7 @@ export default class ClientV1 extends Client implements GenericClient {
 		signal: AbortSignal | undefined
 	): Promise<BareResponse> {
 		if (protocol.startsWith('blob:')) {
-			const response = await fetch(`blob:${location.origin}${path}`);
+			const response = await fetch(`${protocol}${host}${path}`);
 			const result: Response & Partial<BareResponse> = new Response(
 				response.body,
 				response
