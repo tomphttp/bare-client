@@ -194,12 +194,17 @@ export default class BareClient {
 		if (!this.onDemand) return;
 
 		if (!this.working)
-			this.working = fetchManifest(this.server, this.onDemandSignal).then(
-				(manfiest) => {
+			this.working = fetchManifest(this.server, this.onDemandSignal)
+				.then((manfiest) => {
 					this.manfiest = manfiest;
 					this.getClient();
-				}
-			);
+				})
+				.catch((err) => {
+					// allow the next request to re-fetch the manifest
+					// this is to prevent BareClient from permanently failing when used on demand
+					delete this.working;
+					throw err;
+				});
 
 		return this.working;
 	}
