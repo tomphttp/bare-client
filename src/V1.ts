@@ -8,10 +8,10 @@ import type {
 	BareWebSocket,
 	BareWSProtocol,
 	XBare,
-} from './BareClient.js';
-import type { GenericClient } from './Client.js';
-import Client, { BareError, statusEmpty } from './Client.js';
-import { encodeProtocol } from './encodeProtocol.js';
+} from './BareTypes';
+import type { GenericClient } from './Client';
+import Client, { BareError, statusEmpty } from './Client';
+import { encodeProtocol } from './encodeProtocol';
 
 export default class ClientV1 extends Client implements GenericClient {
 	ws: URL;

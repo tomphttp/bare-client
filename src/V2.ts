@@ -8,11 +8,11 @@ import type {
 	BareWebSocket,
 	BareWSProtocol,
 	XBare,
-} from './BareClient';
-import type { GenericClient } from './Client';
-import Client, { BareError, statusEmpty } from './Client';
-import md5 from './md5';
-import { joinHeaders, splitHeaders } from './splitHeaderUtil';
+} from './BareTypes.js';
+import Client, { BareError, statusEmpty } from './Client.js';
+import type { GenericClient } from './Client.js';
+import md5 from './md5.js';
+import { joinHeaders, splitHeaders } from './splitHeaderUtil.js';
 
 export default class ClientV2 extends Client implements GenericClient {
 	ws: URL;
