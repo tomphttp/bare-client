@@ -308,85 +308,45 @@ export default class BareClient {
 	}
 	async fetch(
 		url: urlLike | Request,
-		init: BareFetchInit = {}
+		init?: RequestInit
 	): Promise<BareResponseFetch> {
-		if (url instanceof Request) {
-			// behave similar to the browser when fetch is called with (Request, Init)
-			if (init) {
-				url = new URL(url.url);
-			} else {
-				init = url;
-				url = new URL(url.url);
-			}
-		} else {
-			url = new URL(url);
-		}
+		const req = isUrlLike(url) ? new Request(url, init) : url;
 
-		let method: BareMethod;
+		// try to use init.headers because it may contain capitalized headers
+		// we should try to preserve the capitalization due to quirks with earlier servers
+		const inputHeaders = init?.headers || req.headers;
 
-		if (typeof init.method === 'string') {
-			method = init.method;
-		} else {
-			method = 'GET';
-		}
+		const headers: BareHeaders =
+			inputHeaders instanceof Headers
+				? Object.fromEntries(inputHeaders)
+				: (inputHeaders as BareHeaders);
 
-		let body: BareBodyInit;
-
-		if (init.body !== undefined && init.body !== null) {
-			body = init.body;
-		}
-
-		let headers: BareHeaders;
-
-		if (typeof init.headers === 'object' && init.headers !== null) {
-			if (init.headers instanceof Headers) {
-				headers = Object.fromEntries(init.headers);
-			} else {
-				headers = init.headers;
-			}
-		} else {
-			headers = {};
-		}
-
-		let cache: BareCache;
-
-		if (typeof init.cache === 'string') {
-			cache = init.cache;
-		} else {
-			cache = 'default';
-		}
-
-		let signal: AbortSignal | undefined;
-
-		if (init.signal instanceof AbortSignal) {
-			signal = init.signal;
-		}
+		let urlO = new URL(req.url);
 
 		for (let i = 0; ; i++) {
-			if ('host' in headers) headers.host = url.host;
-			else headers.Host = url.host;
+			if ('host' in headers) headers.host = urlO.host;
+			else headers.Host = urlO.host;
 
 			const response: BareResponse & Partial<BareResponseFetch> =
 				await this.request(
-					method,
+					req.method,
 					headers,
-					body,
-					url.protocol,
-					url.hostname,
-					resolvePort(url),
-					url.pathname + url.search,
-					cache,
-					signal
+					req.body,
+					urlO.protocol,
+					urlO.hostname,
+					resolvePort(urlO),
+					urlO.pathname + urlO.search,
+					req.cache,
+					req.signal
 				);
 
 			response.finalURL = url.toString();
 
 			if (statusRedirect.includes(response.status)) {
-				switch (init.redirect) {
-					default:
+				switch (req.redirect) {
 					case 'follow':
 						if (maxRedirects > i && response.headers.has('location')) {
-							url = new URL(response.headers.get('location')!, url);
+							urlO = new URL(response.headers.get('location')!, urlO);
 							continue;
 						} else {
 							throw new TypeError('Failed to fetch');
@@ -401,6 +361,10 @@ export default class BareClient {
 			}
 		}
 	}
+}
+
+function isUrlLike(url: unknown): url is urlLike {
+	return typeof url === 'string' || url instanceof URL;
 }
 
 /**
