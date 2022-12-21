@@ -218,7 +218,20 @@ export default class BareClient {
 	): Promise<BareResponseFetch> {
 		const req = isUrlLike(url) ? new Request(url, init) : url;
 
+		/*
+		const a = new Headers(); // unmanaged `Headers`
+		const b = new Request(location.toString()).headers; // managed `Headers`
+
+
+		a.set("user-agent", "test");
+		b.set("user-agent", "test");
+
+		// On Chrome: "test" null
+		console.log(a.get("user-agent"), b.get("user-agent"))
+		*/
+
 		// try to use init.headers because it may contain capitalized headers
+		// furthermore, important headers on the Request class are blocked...
 		// we should try to preserve the capitalization due to quirks with earlier servers
 		const inputHeaders = init?.headers || req.headers;
 
