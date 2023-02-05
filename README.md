@@ -15,7 +15,7 @@ Script tag:
 ESM/bundler:
 
 ```sh
-$ npm i @tomphttp/bare-client
+npm i @tomphttp/bare-client
 ```
 
 See [examples/](examples/).
