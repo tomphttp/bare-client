@@ -119,6 +119,8 @@ export default class ClientV2 extends Client implements GenericClient {
 			credentials: 'omit',
 			method: method,
 			signal,
+			// @ts-ignore
+			duplex: 'half'
 		};
 
 		if (cache !== 'only-if-cached') {
