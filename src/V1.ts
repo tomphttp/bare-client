@@ -133,6 +133,8 @@ export default class ClientV1 extends Client implements GenericClient {
 			credentials: 'omit',
 			method: method,
 			signal,
+			// @ts-ignore
+			duplex: 'half'
 		};
 
 		if (body !== undefined) {
