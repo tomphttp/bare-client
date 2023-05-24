@@ -249,8 +249,10 @@ export default class BareClient {
 
 			response.finalURL = url.toString();
 
+			const redirect = init?.redirect || req.redirect;
+
 			if (statusRedirect.includes(response.status)) {
-				switch (req.redirect) {
+				switch (redirect) {
 					case 'follow':
 						if (maxRedirects > i && response.headers.has('location')) {
 							urlO = new URL(response.headers.get('location')!, urlO);
