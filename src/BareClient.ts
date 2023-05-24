@@ -247,7 +247,7 @@ export default class BareClient {
 					req.signal
 				);
 
-			response.finalURL = url.toString();
+			response.finalURL = urlO.toString();
 
 			const redirect = init?.redirect || req.redirect;
 
