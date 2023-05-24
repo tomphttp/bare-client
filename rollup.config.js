@@ -1,6 +1,5 @@
 import inject from '@rollup/plugin-inject';
 import { fileURLToPath } from 'node:url';
-import sourcemaps from 'rollup-plugin-sourcemaps';
 import typescript from 'rollup-plugin-typescript2';
 
 /**
@@ -23,7 +22,6 @@ const commonPlugins = () => [
 			)
 		)
 	),
-	sourcemaps(),
 ];
 
 /**
