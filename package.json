@@ -20,7 +20,7 @@
 		"watch": "rollup -cw"
 	},
 	"type": "module",
-	"license": "GPL-3.0",
+	"license": "LGPL-3.0",
 	"exports": {
 		"import": "./dist/BareClient.js",
 		"require": "./dist/BareClient.cjs"
