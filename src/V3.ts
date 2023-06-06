@@ -245,10 +245,10 @@ export default class ClientV3
 	) {
 		const headers = new Headers();
 
-		headers.set('x-bare-protocol', protocol);
-		headers.set('x-bare-host', host);
-		headers.set('x-bare-path', path);
-		headers.set('x-bare-port', port.toString());
+		headers.set(
+			'x-bare-url',
+			remoteToURL({ protocol, host, path, port }).toString()
+		);
 		headers.set('x-bare-headers', JSON.stringify(bareHeaders));
 
 		for (const header of forwardHeaders) {
