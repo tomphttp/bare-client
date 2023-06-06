@@ -18,18 +18,13 @@ import ClientV2 from './V2';
 import ClientV3 from './V3';
 import { validProtocol } from './encodeProtocol';
 
-// Implements the protocol for requesting bare data from a server
-// See ../Server/Send.mjs
-
-export * from './Client';
-
 const clientCtors: [string, { new (server: URL): GenericClient }][] = [
 	['v3', ClientV3],
 	['v2', ClientV2],
 	['v1', ClientV1],
 ];
 
-async function fetchManifest(
+export async function fetchManifest(
 	server: string | URL,
 	signal?: AbortSignal
 ): Promise<BareManifest> {
@@ -44,7 +39,7 @@ async function fetchManifest(
 	return await outgoing.json();
 }
 
-export default class BareClient {
+export class BareClient {
 	/**
 	 * @depricated Use .manifest instead.
 	 */
@@ -274,19 +269,4 @@ export default class BareClient {
 
 function isUrlLike(url: unknown): url is urlLike {
 	return typeof url === 'string' || url instanceof URL;
-}
-
-/**
- *
- * Facilitates fetching the Bare server and constructing a BareClient.
- * @param server Bare server
- * @param signal Abort signal when fetching the manifest
- */
-export async function createBareClient(
-	server: string | URL,
-	signal?: AbortSignal
-): Promise<BareClient> {
-	const manfiest = await fetchManifest(server, signal);
-
-	return new BareClient(server, manfiest);
 }

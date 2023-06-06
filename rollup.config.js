@@ -30,11 +30,10 @@ const commonPlugins = () => [
 const configs = [
 	// import
 	{
-		input: 'src/BareClient.ts',
+		input: 'src/index.ts',
 		output: {
-			file: `dist/BareClient.js`,
+			file: `dist/index.js`,
 			format: 'esm',
-			name: 'BareClient',
 			sourcemap: true,
 			exports: 'named',
 		},
@@ -44,11 +43,11 @@ const configs = [
 	{
 		input: 'src/index.ts',
 		output: {
-			file: `dist/BareClient.cjs`,
+			file: `dist/bare.cjs`,
 			format: 'umd',
-			name: 'createBareClient',
+			name: 'bare',
 			sourcemap: true,
-			exports: 'default',
+			exports: 'auto',
 		},
 		plugins: commonPlugins(),
 	},

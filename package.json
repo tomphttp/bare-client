@@ -22,13 +22,13 @@
 	"type": "module",
 	"license": "LGPL-3.0",
 	"exports": {
-		"import": "./dist/BareClient.js",
-		"require": "./dist/BareClient.cjs"
+		"import": "./dist/index.js",
+		"require": "./dist/index.cjs"
 	},
-	"browser": "dist/BareClient.cjs",
-	"main": "dist/BareClient.cjs",
-	"module": "dist/BareClient.js",
-	"types": "dist/BareClient.d.ts",
+	"browser": "dist/index.cjs",
+	"main": "dist/index.cjs",
+	"module": "dist/index.js",
+	"types": "dist/index.d.ts",
 	"files": [
 		"dist"
 	],
