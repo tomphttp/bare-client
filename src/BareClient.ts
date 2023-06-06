@@ -133,12 +133,16 @@ export default class BareClient {
 		const client = await this.demand();
 		return client.legacyConnect(requestHeaders, remote);
 	}
-	connect(requestHeaders: BareHeaders, remote: URL): BareWebSocket2 {
+	connect(
+		requestHeaders: BareHeaders,
+		remote: URL,
+		protocols: string[]
+	): BareWebSocket2 {
 		if (!this.client)
 			throw new TypeError(
 				'You need to wait for the client to finish fetching the manifest before creating any WebSockets. Try caching the manifest data before making this request.'
 			);
-		return this.client.connect(requestHeaders, remote);
+		return this.client.connect(requestHeaders, remote, protocols);
 	}
 	legacyCreateWebSocket(
 		remote: urlLike,
@@ -208,10 +212,7 @@ export default class BareClient {
 					`Failed to construct 'WebSocket': The subprotocol '${proto}' is invalid.`
 				);
 
-		if (protocols.length)
-			requestHeaders['Sec-Websocket-Protocol'] = protocols.join(', ');
-
-		return this.client.connect(requestHeaders, remote);
+		return this.client.connect(requestHeaders, remote, protocols);
 	}
 
 	async fetch(

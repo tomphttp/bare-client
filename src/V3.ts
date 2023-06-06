@@ -31,7 +31,7 @@ export default class ClientV3
 			this.ws.protocol = 'ws:';
 		}
 	}
-	connect(requestHeaders: BareHeaders, remote: URL) {
+	connect(requestHeaders: BareHeaders, remote: URL, protocols: string[] = []) {
 		const ws: WebSocket & Partial<BareWebSocket2> = new WebSocket(this.ws);
 
 		ws.meta = new Promise((resolve, reject) => {
@@ -91,6 +91,7 @@ export default class ClientV3
 					JSON.stringify({
 						type: 'connect',
 						remote: remote.toString(),
+						protocols,
 						headers: requestHeaders,
 						forwardHeaders: [],
 					} as SocketClientToServer)

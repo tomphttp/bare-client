@@ -40,7 +40,11 @@ export interface GenericClient {
 	/**
 	 * V3+
 	 */
-	connect(requestHeaders: BareHeaders, remote: URL): BareWebSocket2;
+	connect(
+		requestHeaders: BareHeaders,
+		remote: URL,
+		protocols: string[]
+	): BareWebSocket2;
 	request(
 		method: BareMethod,
 		requestHeaders: BareHeaders,
@@ -74,9 +78,21 @@ export class ModernClient<T extends GenericClient> extends Client {
 		requestHeaders: BareHeaders,
 		remote: URL
 	): Promise<BareWebSocket> {
+		const protocolHeader = Object.keys(requestHeaders).find(
+			(key) => key.toLowerCase() === 'sec-websocket-protocol'
+		);
+		const protocolValue =
+			typeof protocolHeader !== 'undefined'
+				? requestHeaders[protocolHeader]
+				: undefined;
+		const protocols =
+			typeof protocolValue !== 'undefined'
+				? protocolValue.toString().split(/,\s+/g)
+				: [];
+
 		const modern: WebSocket & (BareWebSocket | BareWebSocket2) = (
 			this as unknown as T
-		).connect(requestHeaders, remote);
+		).connect(requestHeaders, remote, protocols);
 
 		// downgrade the meta
 		(modern as unknown as BareWebSocket).meta = (
