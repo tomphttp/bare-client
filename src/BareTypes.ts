@@ -24,6 +24,10 @@ export interface XBare {
 	rawHeaders?: BareHeaders;
 }
 
+export interface XBare2 {
+	protocol: string;
+}
+
 export type BareHTTPProtocol = 'blob:' | 'http:' | 'https:' | string;
 export type BareWSProtocol = 'ws:' | 'wss:' | string;
 
@@ -31,12 +35,17 @@ export type urlLike = URL | string;
 
 export const maxRedirects = 20;
 
-export type BareHeaders = { [key: string]: string | string[] };
+export type BareHeaders = Record<string, string | string[]>;
 
 /**
  * WebSocket with an additional property.
  */
 export type BareWebSocket = WebSocket & { meta: Promise<XBare> };
+
+/**
+ * WebSocket with an additional property.
+ */
+export type BareWebSocket2 = WebSocket & { meta: Promise<XBare2> };
 
 /**
  * A Response with additional properties.

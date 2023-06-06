@@ -5,27 +5,39 @@ import type {
 	BareHTTPProtocol,
 	BareMethod,
 	BareResponse,
-	BareWebSocket,
 	BareWSProtocol,
+	BareWebSocket2,
 	XBare,
 } from './BareTypes.js';
-import { BareError, LegacyClient, statusEmpty } from './Client.js';
+import { BareError, ModernClient, statusEmpty } from './Client.js';
 import type { GenericClient } from './Client.js';
 import md5 from './md5.js';
+import { remoteToURL } from './remoteUtil.js';
 import { joinHeaders, splitHeaders } from './splitHeaderUtil.js';
 
-export default class ClientV2 extends LegacyClient implements GenericClient {
+type SocketClientToServer = {
+	type: 'connect';
+	to: string;
+	headers: BareHeaders;
+	forwardHeaders: string[];
+};
+
+type SocketServerToClient = {
+	type: 'open';
+	protocol: string;
+};
+
+export default class ClientV3
+	extends ModernClient<ClientV3>
+	implements GenericClient
+{
 	ws: URL;
 	http: URL;
-	newMeta: URL;
-	getMeta: URL;
 	constructor(server: URL) {
-		super(2, server);
+		super(3, server);
 
 		this.ws = new URL(this.base);
 		this.http = new URL(this.base);
-		this.newMeta = new URL('./ws-new-meta', this.base);
-		this.getMeta = new URL(`./ws-meta`, this.base);
 
 		if (this.ws.protocol === 'https:') {
 			this.ws.protocol = 'wss:';
@@ -33,51 +45,86 @@ export default class ClientV2 extends LegacyClient implements GenericClient {
 			this.ws.protocol = 'ws:';
 		}
 	}
-	async legacyConnect(
+	connect(
 		requestHeaders: BareHeaders,
 		protocol: BareWSProtocol,
 		host: string,
 		port: string | number,
 		path: string
-	): Promise<BareWebSocket> {
-		const request = new Request(this.newMeta, {
-			headers: this.createBareHeaders(
-				protocol,
-				host,
-				path,
-				port,
-				requestHeaders
-			),
-		});
+	) {
+		const ws: WebSocket & Partial<BareWebSocket2> = new WebSocket(this.ws);
 
-		const assignMeta = await fetch(request);
+		ws.meta = new Promise((resolve, reject) => {
+			const cleanup = () => {
+				ws.removeEventListener('close', closeListener);
+				ws.removeEventListener('message', messageListener);
+			};
 
-		if (!assignMeta.ok) {
-			throw new BareError(assignMeta.status, await assignMeta.json());
-		}
+			const closeListener = () => {
+				reject('WebSocket closed before handshake could be completed');
+				cleanup();
+			};
 
-		const id = await assignMeta.text();
+			const messageListener = (event: MessageEvent) => {
+				cleanup();
 
-		const socket: WebSocket & Partial<BareWebSocket> = new WebSocket(this.ws, [
-			id,
-		]);
+				// ws.binaryType is irrelevant when sending text
+				if (typeof event.data !== 'string')
+					throw new TypeError(
+						'the first websocket message was not a text frame'
+					);
 
-		socket.meta = new Promise<XBare>((resolve, reject) => {
-			socket.addEventListener('open', async () => {
-				const outgoing = await fetch(this.getMeta, {
-					headers: {
-						'x-bare-id': id,
-					},
-					method: 'GET',
+				const message = JSON.parse(event.data) as SocketServerToClient;
+
+				// finally
+				if (message.type !== 'open')
+					throw new TypeError('message was not of open type');
+
+				ws.dispatchEvent(new Event('open'));
+
+				event.stopImmediatePropagation();
+
+				// TODO: allow passing a function that is called in place of Object.defineProperty to lay the hook on this websocket in particular
+				Object.defineProperty(WebSocket.prototype, 'protocol', {
+					get: () => message.protocol,
+					configurable: true, // let the client undefine it if it doesn't like how we set it
+					enumerable: true,
 				});
 
-				resolve(await this.readBareResponse(outgoing));
-			});
+				resolve({
+					protocol: message.protocol,
+				});
+			};
 
-			socket.addEventListener('error', reject);
+			ws.addEventListener('close', closeListener);
+			ws.addEventListener('message', messageListener);
 		});
 
-		return socket as BareWebSocket;
+		ws.addEventListener(
+			'open',
+			(event) => {
+				// we need to send our real "open" event
+				event.stopImmediatePropagation();
+
+				ws.send(
+					JSON.stringify({
+						type: 'connect',
+						to: remoteToURL({
+							protocol,
+							host,
+							port: Number(port),
+							path,
+						}).toString(),
+						headers: requestHeaders,
+						forwardHeaders: [],
+					} as SocketClientToServer)
+				);
+			},
+			// only block the open event once
+			{ once: true }
+		);
+
+		return ws as BareWebSocket2;
 	}
 	async request(
 		method: BareMethod,

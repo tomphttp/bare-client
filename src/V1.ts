@@ -7,13 +7,14 @@ import type {
 	BareResponse,
 	BareWebSocket,
 	BareWSProtocol,
+	BareWebSocket2,
 	XBare,
 } from './BareTypes';
 import type { GenericClient } from './Client';
-import Client, { BareError, statusEmpty } from './Client';
+import { BareError, statusEmpty, LegacyClient } from './Client';
 import { encodeProtocol } from './encodeProtocol';
 
-export default class ClientV1 extends Client implements GenericClient {
+export default class ClientV1 extends LegacyClient implements GenericClient {
 	ws: URL;
 	http: URL;
 	newMeta: URL;
@@ -32,7 +33,10 @@ export default class ClientV1 extends Client implements GenericClient {
 			this.ws.protocol = 'ws:';
 		}
 	}
-	async connect(
+	connect(): BareWebSocket2 {
+		throw new Error('Not supported');
+	}
+	async legacyConnect(
 		requestHeaders: BareHeaders,
 		protocol: BareWSProtocol,
 		host: string,
@@ -134,7 +138,7 @@ export default class ClientV1 extends Client implements GenericClient {
 			method: method,
 			signal,
 			// @ts-ignore
-			duplex: 'half'
+			duplex: 'half',
 		};
 
 		if (body !== undefined) {

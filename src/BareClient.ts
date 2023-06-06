@@ -16,6 +16,7 @@ import type { GenericClient } from './Client';
 import { statusRedirect } from './Client';
 import ClientV1 from './V1';
 import ClientV2 from './V2';
+import ClientV3 from './V3';
 import { validProtocol } from './encodeProtocol';
 
 // Implements the protocol for requesting bare data from a server
@@ -24,6 +25,7 @@ import { validProtocol } from './encodeProtocol';
 export * from './Client';
 
 const clientCtors: [string, { new (server: URL): GenericClient }][] = [
+	['v3', ClientV3],
 	['v2', ClientV2],
 	['v1', ClientV1],
 ];
@@ -69,7 +71,7 @@ export default class BareClient {
 	manfiest?: BareManifest;
 	private client?: GenericClient;
 	private server: URL;
-	private working?: Promise<void>;
+	private working?: Promise<GenericClient>;
 	private onDemand: boolean;
 	private onDemandSignal?: AbortSignal;
 	/**
@@ -93,17 +95,18 @@ export default class BareClient {
 		} else {
 			this.onDemand = false;
 			this.manfiest = _;
-			this.getClient();
+			this.client = this.getClient();
 		}
 	}
 	private demand() {
-		if (!this.onDemand) return;
+		if (!this.onDemand) return this.client!;
 
 		if (!this.working)
 			this.working = fetchManifest(this.server, this.onDemandSignal)
 				.then((manfiest) => {
 					this.manfiest = manfiest;
-					this.getClient();
+					this.client = this.getClient();
+					return this.client;
 				})
 				.catch((err) => {
 					// allow the next request to re-fetch the manifest
@@ -116,12 +119,8 @@ export default class BareClient {
 	}
 	private getClient() {
 		// newest-oldest
-		for (const [version, ctor] of clientCtors) {
-			if (this.data!.versions.includes(version)) {
-				this.client = new ctor(this.server);
-				return;
-			}
-		}
+		for (const [version, ctor] of clientCtors)
+			if (this.data!.versions.includes(version)) return new ctor(this.server);
 
 		throw new Error(`Unable to find compatible client version.`);
 	}
@@ -136,9 +135,9 @@ export default class BareClient {
 		cache: BareCache | undefined,
 		signal: AbortSignal | undefined
 	): Promise<BareResponse> {
-		await this.demand();
+		const client = await this.demand();
 
-		return await this.client!.request(
+		return await client.request(
 			method,
 			requestHeaders,
 			body,
@@ -150,27 +149,19 @@ export default class BareClient {
 			signal
 		);
 	}
-	async connect(
+	async legacyConnect(
 		requestHeaders: BareHeaders,
 		protocol: BareWSProtocol,
 		host: string,
 		port: string | number,
 		path: string
 	): Promise<BareWebSocket> {
-		await this.demand();
-
-		return this.client!.connect(requestHeaders, protocol, host, port, path);
+		const client = await this.demand();
+		return client.legacyConnect(requestHeaders, protocol, host, port, path);
 	}
-	/**
-	 *
-	 * @param url
-	 * @param headers
-	 * @param protocols
-	 * @returns
-	 */
-	createWebSocket(
+	legacyCreateWebSocket(
 		url: urlLike,
-		headers: BareHeaders | Headers = {},
+		headers: BareHeaders | Headers | undefined = {},
 		protocols: string | string[] = []
 	): Promise<BareWebSocket> {
 		const requestHeaders: BareHeaders =
@@ -189,22 +180,18 @@ export default class BareClient {
 		// requestHeaders['User-Agent'] = navigator.userAgent;
 		requestHeaders['Connection'] = 'Upgrade';
 
-		if (typeof protocols === 'string') {
-			protocols = [protocols];
-		}
+		if (typeof protocols === 'string') protocols = [protocols];
 
-		for (const proto of protocols) {
-			if (!validProtocol(proto)) {
+		for (const proto of protocols)
+			if (!validProtocol(proto))
 				throw new DOMException(
 					`Failed to construct 'WebSocket': The subprotocol '${proto}' is invalid.`
 				);
-			}
-		}
 
 		if (protocols.length)
 			requestHeaders['Sec-Websocket-Protocol'] = protocols.join(', ');
 
-		return this.connect(
+		return this.legacyConnect(
 			requestHeaders,
 			url.protocol,
 			url.hostname,
@@ -212,6 +199,52 @@ export default class BareClient {
 			url.pathname + url.search
 		);
 	}
+	createWebSocket(
+		url: urlLike,
+		headers: BareHeaders | Headers | undefined = {},
+		protocols: string | string[] = []
+	): WebSocket {
+		if (!this.client)
+			throw new TypeError(
+				'You need to wait for the client to finish fetching the manifest before creating any WebSockets. Try caching the manifest data before making this request.'
+			);
+
+		const requestHeaders: BareHeaders =
+			headers instanceof Headers ? Object.fromEntries(headers) : headers;
+
+		url = new URL(url);
+
+		// user is expected to specify user-agent and origin
+		// both are in spec
+
+		requestHeaders['Host'] = url.host;
+		// requestHeaders['Origin'] = origin;
+		requestHeaders['Pragma'] = 'no-cache';
+		requestHeaders['Cache-Control'] = 'no-cache';
+		requestHeaders['Upgrade'] = 'websocket';
+		// requestHeaders['User-Agent'] = navigator.userAgent;
+		requestHeaders['Connection'] = 'Upgrade';
+
+		if (typeof protocols === 'string') protocols = [protocols];
+
+		for (const proto of protocols)
+			if (!validProtocol(proto))
+				throw new DOMException(
+					`Failed to construct 'WebSocket': The subprotocol '${proto}' is invalid.`
+				);
+
+		if (protocols.length)
+			requestHeaders['Sec-Websocket-Protocol'] = protocols.join(', ');
+
+		return this.client.connect(
+			requestHeaders,
+			url.protocol,
+			url.hostname,
+			resolvePort(url),
+			url.pathname + url.search
+		);
+	}
+
 	async fetch(
 		url: urlLike | Request,
 		init?: RequestInit

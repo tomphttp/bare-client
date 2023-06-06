@@ -7,6 +7,7 @@ import type {
 	BareResponse,
 	BareWebSocket,
 	BareWSProtocol,
+	BareWebSocket2,
 } from './BareTypes.js';
 
 export const statusEmpty = [101, 204, 205, 304];
@@ -30,13 +31,26 @@ export class BareError extends Error {
 }
 
 export interface GenericClient {
-	connect(
+	/**
+	 * V1-V2
+	 */
+	legacyConnect(
 		requestHeaders: BareHeaders,
 		protocol: BareWSProtocol,
 		host: string,
 		port: string | number,
 		path: string
 	): Promise<BareWebSocket>;
+	/**
+	 * V3+
+	 */
+	connect(
+		requestHeaders: BareHeaders,
+		protocol: BareWSProtocol,
+		host: string,
+		port: string | number,
+		path: string
+	): BareWebSocket2;
 	request(
 		method: BareMethod,
 		requestHeaders: BareHeaders,
@@ -50,7 +64,7 @@ export interface GenericClient {
 	): Promise<BareResponse>;
 }
 
-export default class Client {
+export class Client {
 	protected base: URL;
 	/**
 	 *
@@ -59,5 +73,44 @@ export default class Client {
 	 */
 	constructor(version: number, server: URL) {
 		this.base = new URL(`./v${version}/`, server);
+	}
+}
+
+export class LegacyClient extends Client {
+	connect(): BareWebSocket2 {
+		throw new Error('Not supported');
+	}
+}
+
+export class ModernClient<T extends GenericClient> extends Client {
+	async legacyConnect(
+		requestHeaders: BareHeaders,
+		protocol: BareWSProtocol,
+		host: string,
+		port: string | number,
+		path: string
+	): Promise<BareWebSocket> {
+		const modern: WebSocket & (BareWebSocket2 | BareWebSocket) = (
+			this as unknown as T
+		).connect(requestHeaders, protocol, host, port, path);
+
+		// downgrade the meta
+		(modern as BareWebSocket).meta = (modern as BareWebSocket2).meta.then(
+			() => {
+				const fakeHeaders: BareHeaders = {
+					'sec-websocket-protocol': modern.protocol,
+					'sec-websocket-extensions': modern.extensions,
+				};
+
+				return {
+					status: 200,
+					statusText: 'OK',
+					headers: new Headers(fakeHeaders as HeadersInit),
+					rawHeaders: fakeHeaders,
+				};
+			}
+		);
+
+		return modern as BareWebSocket;
 	}
 }
