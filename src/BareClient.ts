@@ -7,6 +7,7 @@ import type {
 	BareResponse,
 	BareResponseFetch,
 	BareWebSocket,
+	BareWebSocket2,
 	urlLike,
 } from './BareTypes';
 import { maxRedirects } from './BareTypes';
@@ -131,6 +132,13 @@ export default class BareClient {
 	): Promise<BareWebSocket> {
 		const client = await this.demand();
 		return client.legacyConnect(requestHeaders, remote);
+	}
+	connect(requestHeaders: BareHeaders, remote: URL): BareWebSocket2 {
+		if (!this.client)
+			throw new TypeError(
+				'You need to wait for the client to finish fetching the manifest before creating any WebSockets. Try caching the manifest data before making this request.'
+			);
+		return this.client.connect(requestHeaders, remote);
 	}
 	legacyCreateWebSocket(
 		remote: urlLike,
