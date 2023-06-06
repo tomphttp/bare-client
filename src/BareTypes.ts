@@ -26,6 +26,7 @@ export interface XBare {
 
 export interface XBare2 {
 	protocol: string;
+	setCookies: string[];
 }
 
 export type BareHTTPProtocol = 'blob:' | 'http:' | 'https:' | string;

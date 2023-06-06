@@ -9,20 +9,9 @@ import type {
 } from './BareTypes.js';
 import { BareError, ModernClient, statusEmpty } from './Client.js';
 import type { GenericClient } from './Client.js';
+import type { SocketClientToServer, SocketServerToClient } from './V3Types.js';
 import md5 from './md5.js';
 import { joinHeaders, splitHeaders } from './splitHeaderUtil.js';
-
-type SocketClientToServer = {
-	type: 'connect';
-	to: string;
-	headers: BareHeaders;
-	forwardHeaders: string[];
-};
-
-type SocketServerToClient = {
-	type: 'open';
-	protocol: string;
-};
 
 export default class ClientV3
 	extends ModernClient<ClientV3>
@@ -84,6 +73,7 @@ export default class ClientV3
 
 				resolve({
 					protocol: message.protocol,
+					setCookies: message.setCookies,
 				});
 			};
 
@@ -100,7 +90,7 @@ export default class ClientV3
 				ws.send(
 					JSON.stringify({
 						type: 'connect',
-						to: remote.toString(),
+						remote: remote.toString(),
 						headers: requestHeaders,
 						forwardHeaders: [],
 					} as SocketClientToServer)

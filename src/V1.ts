@@ -10,20 +10,9 @@ import type {
 } from './BareTypes';
 import type { GenericClient } from './Client';
 import { BareError, statusEmpty, LegacyClient } from './Client';
+import type { BareV1Meta, BareV1MetaRes } from './V1Types';
 import { encodeProtocol } from './encodeProtocol';
-import type { BareRemote } from './remoteUtil';
 import { urlToRemote } from './remoteUtil';
-
-interface BareV1Meta {
-	remote: BareRemote;
-	headers: BareHeaders;
-	forward_headers: string[];
-	id?: string;
-}
-
-interface BareV1MetaRes {
-	headers: BareHeaders;
-}
 
 export default class ClientV1 extends LegacyClient implements GenericClient {
 	ws: URL;
