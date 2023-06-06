@@ -2,17 +2,14 @@ import type {
 	BareBodyInit,
 	BareCache,
 	BareHeaders,
-	BareHTTPProtocol,
 	BareMethod,
 	BareResponse,
-	BareWSProtocol,
 	BareWebSocket2,
 	XBare,
 } from './BareTypes.js';
 import { BareError, ModernClient, statusEmpty } from './Client.js';
 import type { GenericClient } from './Client.js';
 import md5 from './md5.js';
-import { remoteToURL } from './remoteUtil.js';
 import { joinHeaders, splitHeaders } from './splitHeaderUtil.js';
 
 type SocketClientToServer = {
@@ -45,13 +42,7 @@ export default class ClientV3
 			this.ws.protocol = 'ws:';
 		}
 	}
-	connect(
-		requestHeaders: BareHeaders,
-		protocol: BareWSProtocol,
-		host: string,
-		port: string | number,
-		path: string
-	) {
+	connect(requestHeaders: BareHeaders, remote: URL) {
 		const ws: WebSocket & Partial<BareWebSocket2> = new WebSocket(this.ws);
 
 		ws.meta = new Promise((resolve, reject) => {
@@ -109,12 +100,7 @@ export default class ClientV3
 				ws.send(
 					JSON.stringify({
 						type: 'connect',
-						to: remoteToURL({
-							protocol,
-							host,
-							port: Number(port),
-							path,
-						}).toString(),
+						to: remote.toString(),
 						headers: requestHeaders,
 						forwardHeaders: [],
 					} as SocketClientToServer)
@@ -130,15 +116,12 @@ export default class ClientV3
 		method: BareMethod,
 		requestHeaders: BareHeaders,
 		body: BareBodyInit,
-		protocol: BareHTTPProtocol,
-		host: string,
-		port: string | number,
-		path: string,
+		remote: URL,
 		cache: BareCache | undefined,
 		signal: AbortSignal | undefined
 	): Promise<BareResponse> {
-		if (protocol.startsWith('blob:')) {
-			const response = await fetch(`${protocol}${host}${path}`);
+		if (remote.protocol.startsWith('blob:')) {
+			const response = await fetch(remote);
 			const result: Response & Partial<BareResponse> = new Response(
 				response.body,
 				response
@@ -178,16 +161,10 @@ export default class ClientV3
 			options.body = body;
 		}
 
-		options.headers = this.createBareHeaders(
-			protocol,
-			host,
-			path,
-			port,
-			bareHeaders
-		);
+		options.headers = this.createBareHeaders(remote, bareHeaders);
 
 		const request = new Request(
-			this.http + '?cache=' + md5(`${protocol}${host}${port}${path}`),
+			this.http + '?cache=' + md5(remote.toString()),
 			options
 		);
 
@@ -234,10 +211,7 @@ export default class ClientV3
 		return result;
 	}
 	createBareHeaders(
-		protocol: BareWSProtocol | BareHTTPProtocol,
-		host: string,
-		path: string,
-		port: number | string,
+		remote: URL,
 		bareHeaders: BareHeaders,
 		forwardHeaders: string[] = [],
 		passHeaders: string[] = [],
@@ -245,10 +219,7 @@ export default class ClientV3
 	) {
 		const headers = new Headers();
 
-		headers.set(
-			'x-bare-url',
-			remoteToURL({ protocol, host, path, port }).toString()
-		);
+		headers.set('x-bare-url', remote.toString());
 		headers.set('x-bare-headers', JSON.stringify(bareHeaders));
 
 		for (const header of forwardHeaders) {

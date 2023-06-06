@@ -2,16 +2,15 @@ import type {
 	BareBodyInit,
 	BareCache,
 	BareHeaders,
-	BareHTTPProtocol,
 	BareMethod,
 	BareResponse,
 	BareWebSocket,
-	BareWSProtocol,
 	XBare,
 } from './BareTypes.js';
 import { BareError, LegacyClient, statusEmpty } from './Client.js';
 import type { GenericClient } from './Client.js';
 import md5 from './md5.js';
+import { urlToRemote } from './remoteUtil.js';
 import { joinHeaders, splitHeaders } from './splitHeaderUtil.js';
 
 export default class ClientV2 extends LegacyClient implements GenericClient {
@@ -35,19 +34,10 @@ export default class ClientV2 extends LegacyClient implements GenericClient {
 	}
 	async legacyConnect(
 		requestHeaders: BareHeaders,
-		protocol: BareWSProtocol,
-		host: string,
-		port: string | number,
-		path: string
+		remote: URL
 	): Promise<BareWebSocket> {
 		const request = new Request(this.newMeta, {
-			headers: this.createBareHeaders(
-				protocol,
-				host,
-				path,
-				port,
-				requestHeaders
-			),
+			headers: this.createBareHeaders(remote, requestHeaders),
 		});
 
 		const assignMeta = await fetch(request);
@@ -83,15 +73,12 @@ export default class ClientV2 extends LegacyClient implements GenericClient {
 		method: BareMethod,
 		requestHeaders: BareHeaders,
 		body: BareBodyInit,
-		protocol: BareHTTPProtocol,
-		host: string,
-		port: string | number,
-		path: string,
+		remote: URL,
 		cache: BareCache | undefined,
 		signal: AbortSignal | undefined
 	): Promise<BareResponse> {
-		if (protocol.startsWith('blob:')) {
-			const response = await fetch(`${protocol}${host}${path}`);
+		if (remote.protocol === 'blob:') {
+			const response = await fetch(remote);
 			const result: Response & Partial<BareResponse> = new Response(
 				response.body,
 				response
@@ -131,16 +118,10 @@ export default class ClientV2 extends LegacyClient implements GenericClient {
 			options.body = body;
 		}
 
-		options.headers = this.createBareHeaders(
-			protocol,
-			host,
-			path,
-			port,
-			bareHeaders
-		);
+		options.headers = this.createBareHeaders(remote, bareHeaders);
 
 		const request = new Request(
-			this.http + '?cache=' + md5(`${protocol}${host}${port}${path}`),
+			this.http + '?cache=' + md5(remote.toString()),
 			options
 		);
 
@@ -187,10 +168,7 @@ export default class ClientV2 extends LegacyClient implements GenericClient {
 		return result;
 	}
 	createBareHeaders(
-		protocol: BareWSProtocol | BareHTTPProtocol,
-		host: string,
-		path: string,
-		port: number | string,
+		remote: URL,
 		bareHeaders: BareHeaders,
 		forwardHeaders: string[] = [],
 		passHeaders: string[] = [],
@@ -198,10 +176,12 @@ export default class ClientV2 extends LegacyClient implements GenericClient {
 	) {
 		const headers = new Headers();
 
-		headers.set('x-bare-protocol', protocol);
-		headers.set('x-bare-host', host);
-		headers.set('x-bare-path', path);
-		headers.set('x-bare-port', port.toString());
+		const bareRemote = urlToRemote(remote);
+
+		headers.set('x-bare-protocol', bareRemote.protocol);
+		headers.set('x-bare-host', bareRemote.host);
+		headers.set('x-bare-path', bareRemote.path);
+		headers.set('x-bare-port', bareRemote.port.toString());
 		headers.set('x-bare-headers', JSON.stringify(bareHeaders));
 
 		for (const header of forwardHeaders) {

@@ -2,11 +2,9 @@ import type {
 	BareBodyInit,
 	BareCache,
 	BareHeaders,
-	BareHTTPProtocol,
 	BareMethod,
 	BareResponse,
 	BareWebSocket,
-	BareWSProtocol,
 	BareWebSocket2,
 } from './BareTypes.js';
 
@@ -36,29 +34,17 @@ export interface GenericClient {
 	 */
 	legacyConnect(
 		requestHeaders: BareHeaders,
-		protocol: BareWSProtocol,
-		host: string,
-		port: string | number,
-		path: string
+		remote: URL
 	): Promise<BareWebSocket>;
 	/**
 	 * V3+
 	 */
-	connect(
-		requestHeaders: BareHeaders,
-		protocol: BareWSProtocol,
-		host: string,
-		port: string | number,
-		path: string
-	): BareWebSocket2;
+	connect(requestHeaders: BareHeaders, remote: URL): BareWebSocket2;
 	request(
 		method: BareMethod,
 		requestHeaders: BareHeaders,
 		body: BareBodyInit,
-		protocol: BareHTTPProtocol,
-		host: string,
-		port: string | number,
-		path: string,
+		remote: URL,
 		cache: BareCache | undefined,
 		signal: AbortSignal | undefined
 	): Promise<BareResponse>;
@@ -85,14 +71,11 @@ export class LegacyClient extends Client {
 export class ModernClient<T extends GenericClient> extends Client {
 	async legacyConnect(
 		requestHeaders: BareHeaders,
-		protocol: BareWSProtocol,
-		host: string,
-		port: string | number,
-		path: string
+		remote: URL
 	): Promise<BareWebSocket> {
 		const modern: WebSocket & (BareWebSocket2 | BareWebSocket) = (
 			this as unknown as T
-		).connect(requestHeaders, protocol, host, port, path);
+		).connect(requestHeaders, remote);
 
 		// downgrade the meta
 		(modern as BareWebSocket).meta = (modern as BareWebSocket2).meta.then(

@@ -2,17 +2,16 @@ import type {
 	BareBodyInit,
 	BareCache,
 	BareHeaders,
-	BareHTTPProtocol,
 	BareMethod,
 	BareResponse,
 	BareWebSocket,
-	BareWSProtocol,
 	BareWebSocket2,
 	XBare,
 } from './BareTypes';
 import type { GenericClient } from './Client';
 import { BareError, statusEmpty, LegacyClient } from './Client';
 import { encodeProtocol } from './encodeProtocol';
+import { urlToRemote } from './remoteUtil';
 
 export default class ClientV1 extends LegacyClient implements GenericClient {
 	ws: URL;
@@ -38,10 +37,7 @@ export default class ClientV1 extends LegacyClient implements GenericClient {
 	}
 	async legacyConnect(
 		requestHeaders: BareHeaders,
-		protocol: BareWSProtocol,
-		host: string,
-		port: string | number,
-		path: string
+		remote: URL
 	): Promise<BareWebSocket> {
 		const assignMeta = await fetch(this.newMeta, { method: 'GET' });
 
@@ -55,12 +51,7 @@ export default class ClientV1 extends LegacyClient implements GenericClient {
 			'bare',
 			encodeProtocol(
 				JSON.stringify({
-					remote: {
-						protocol,
-						host,
-						port,
-						path,
-					},
+					remote: urlToRemote(remote),
 					headers: requestHeaders,
 					forward_headers: [
 						'accept-encoding',
@@ -99,15 +90,12 @@ export default class ClientV1 extends LegacyClient implements GenericClient {
 		method: BareMethod,
 		requestHeaders: BareHeaders,
 		body: BareBodyInit,
-		protocol: BareHTTPProtocol,
-		host: string,
-		port: string | number,
-		path: string,
+		remote: URL,
 		cache: BareCache | undefined,
 		signal: AbortSignal | undefined
 	): Promise<BareResponse> {
-		if (protocol.startsWith('blob:')) {
-			const response = await fetch(`${protocol}${host}${path}`);
+		if (remote.protocol === 'blob:') {
+			const response = await fetch(remote);
 			const result: Response & Partial<BareResponse> = new Response(
 				response.body,
 				response
@@ -148,15 +136,7 @@ export default class ClientV1 extends LegacyClient implements GenericClient {
 		// bare can be an absolute path containing no origin, it becomes relative to the script
 		const request = new Request(this.http, options);
 
-		this.writeBareRequest(
-			request,
-			protocol,
-			host,
-			path,
-			port,
-			bareHeaders,
-			forwardHeaders
-		);
+		this.writeBareRequest(request, remote, bareHeaders, forwardHeaders);
 
 		const response = await fetch(request);
 
@@ -210,17 +190,16 @@ export default class ClientV1 extends LegacyClient implements GenericClient {
 	}
 	private writeBareRequest(
 		request: Request,
-		protocol: BareHTTPProtocol,
-		host: string,
-		path: string,
-		port: string | number,
+		remote: URL,
 		bareHeaders: BareHeaders,
 		forwardHeaders: string[]
 	) {
-		request.headers.set('x-bare-protocol', protocol);
-		request.headers.set('x-bare-host', host);
-		request.headers.set('x-bare-path', path);
-		request.headers.set('x-bare-port', port.toString());
+		const bareRemote = urlToRemote(remote);
+
+		request.headers.set('x-bare-protocol', bareRemote.protocol);
+		request.headers.set('x-bare-host', bareRemote.host);
+		request.headers.set('x-bare-path', bareRemote.path);
+		request.headers.set('x-bare-port', bareRemote.port.toString());
 		request.headers.set('x-bare-headers', JSON.stringify(bareHeaders));
 		request.headers.set(
 			'x-bare-forward-headers',

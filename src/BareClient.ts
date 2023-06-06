@@ -2,13 +2,11 @@ import type {
 	BareBodyInit,
 	BareCache,
 	BareHeaders,
-	BareHTTPProtocol,
 	BareManifest,
 	BareMethod,
 	BareResponse,
 	BareResponseFetch,
 	BareWebSocket,
-	BareWSProtocol,
 	urlLike,
 } from './BareTypes';
 import { maxRedirects } from './BareTypes';
@@ -43,22 +41,6 @@ async function fetchManifest(
 	}
 
 	return await outgoing.json();
-}
-
-function resolvePort(url: URL) {
-	if (url.port) return Number(url.port);
-
-	switch (url.protocol) {
-		case 'ws:':
-		case 'http:':
-			return 80;
-		case 'wss:':
-		case 'https:':
-			return 443;
-		default:
-			// maybe blob
-			return 0;
-	}
 }
 
 export default class BareClient {
@@ -128,10 +110,7 @@ export default class BareClient {
 		method: BareMethod,
 		requestHeaders: BareHeaders,
 		body: BareBodyInit,
-		protocol: BareHTTPProtocol,
-		host: string,
-		port: string | number,
-		path: string,
+		remote: URL,
 		cache: BareCache | undefined,
 		signal: AbortSignal | undefined
 	): Promise<BareResponse> {
@@ -141,38 +120,32 @@ export default class BareClient {
 			method,
 			requestHeaders,
 			body,
-			protocol,
-			host,
-			port,
-			path,
+			remote,
 			cache,
 			signal
 		);
 	}
 	async legacyConnect(
 		requestHeaders: BareHeaders,
-		protocol: BareWSProtocol,
-		host: string,
-		port: string | number,
-		path: string
+		remote: URL
 	): Promise<BareWebSocket> {
 		const client = await this.demand();
-		return client.legacyConnect(requestHeaders, protocol, host, port, path);
+		return client.legacyConnect(requestHeaders, remote);
 	}
 	legacyCreateWebSocket(
-		url: urlLike,
+		remote: urlLike,
 		headers: BareHeaders | Headers | undefined = {},
 		protocols: string | string[] = []
 	): Promise<BareWebSocket> {
 		const requestHeaders: BareHeaders =
 			headers instanceof Headers ? Object.fromEntries(headers) : headers;
 
-		url = new URL(url);
+		remote = new URL(remote);
 
 		// user is expected to specify user-agent and origin
 		// both are in spec
 
-		requestHeaders['Host'] = url.host;
+		requestHeaders['Host'] = remote.host;
 		// requestHeaders['Origin'] = origin;
 		requestHeaders['Pragma'] = 'no-cache';
 		requestHeaders['Cache-Control'] = 'no-cache';
@@ -191,16 +164,10 @@ export default class BareClient {
 		if (protocols.length)
 			requestHeaders['Sec-Websocket-Protocol'] = protocols.join(', ');
 
-		return this.legacyConnect(
-			requestHeaders,
-			url.protocol,
-			url.hostname,
-			resolvePort(url),
-			url.pathname + url.search
-		);
+		return this.legacyConnect(requestHeaders, remote);
 	}
 	createWebSocket(
-		url: urlLike,
+		remote: urlLike,
 		headers: BareHeaders | Headers | undefined = {},
 		protocols: string | string[] = []
 	): WebSocket {
@@ -212,12 +179,12 @@ export default class BareClient {
 		const requestHeaders: BareHeaders =
 			headers instanceof Headers ? Object.fromEntries(headers) : headers;
 
-		url = new URL(url);
+		remote = new URL(remote);
 
 		// user is expected to specify user-agent and origin
 		// both are in spec
 
-		requestHeaders['Host'] = url.host;
+		requestHeaders['Host'] = remote.host;
 		// requestHeaders['Origin'] = origin;
 		requestHeaders['Pragma'] = 'no-cache';
 		requestHeaders['Cache-Control'] = 'no-cache';
@@ -236,13 +203,7 @@ export default class BareClient {
 		if (protocols.length)
 			requestHeaders['Sec-Websocket-Protocol'] = protocols.join(', ');
 
-		return this.client.connect(
-			requestHeaders,
-			url.protocol,
-			url.hostname,
-			resolvePort(url),
-			url.pathname + url.search
-		);
+		return this.client.connect(requestHeaders, remote);
 	}
 
 	async fetch(
@@ -272,10 +233,7 @@ export default class BareClient {
 					req.method,
 					headers,
 					req.body,
-					urlO.protocol,
-					urlO.hostname,
-					resolvePort(urlO),
-					urlO.pathname + urlO.search,
+					urlO,
 					req.cache,
 					req.signal
 				);
