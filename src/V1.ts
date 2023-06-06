@@ -11,7 +11,19 @@ import type {
 import type { GenericClient } from './Client';
 import { BareError, statusEmpty, LegacyClient } from './Client';
 import { encodeProtocol } from './encodeProtocol';
+import type { BareRemote } from './remoteUtil';
 import { urlToRemote } from './remoteUtil';
+
+interface BareV1Meta {
+	remote: BareRemote;
+	headers: BareHeaders;
+	forward_headers: string[];
+	id?: string;
+}
+
+interface BareV1MetaRes {
+	headers: BareHeaders;
+}
 
 export default class ClientV1 extends LegacyClient implements GenericClient {
 	ws: URL;
@@ -61,7 +73,7 @@ export default class ClientV1 extends LegacyClient implements GenericClient {
 						'sec-websocket-version',
 					],
 					id,
-				})
+				} as BareV1Meta)
 			),
 		]);
 
@@ -74,17 +86,24 @@ export default class ClientV1 extends LegacyClient implements GenericClient {
 					method: 'GET',
 				});
 
-				if (!outgoing.ok) {
+				if (!outgoing.ok)
 					reject(new BareError(outgoing.status, await outgoing.json()));
-				}
+				else {
+					const xBare = (await outgoing.json()) as BareV1MetaRes;
 
-				resolve(await outgoing.json());
+					resolve({
+						status: 101,
+						statusText: 'Switching Protocols',
+						headers: new Headers(xBare.headers as HeadersInit),
+						rawHeaders: xBare.headers,
+					});
+				}
 			});
 
 			socket.addEventListener('error', reject);
 		});
 
-		return <BareWebSocket>socket;
+		return socket as BareWebSocket;
 	}
 	async request(
 		method: BareMethod,

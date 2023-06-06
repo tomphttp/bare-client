@@ -6,6 +6,7 @@ import type {
 	BareResponse,
 	BareWebSocket,
 	BareWebSocket2,
+	XBare,
 } from './BareTypes.js';
 
 export const statusEmpty = [101, 204, 205, 304];
@@ -73,27 +74,27 @@ export class ModernClient<T extends GenericClient> extends Client {
 		requestHeaders: BareHeaders,
 		remote: URL
 	): Promise<BareWebSocket> {
-		const modern: WebSocket & (BareWebSocket2 | BareWebSocket) = (
+		const modern: WebSocket & (BareWebSocket | BareWebSocket2) = (
 			this as unknown as T
 		).connect(requestHeaders, remote);
 
 		// downgrade the meta
-		(modern as BareWebSocket).meta = (modern as BareWebSocket2).meta.then(
-			() => {
-				const fakeHeaders: BareHeaders = {
-					'sec-websocket-protocol': modern.protocol,
-					'sec-websocket-extensions': modern.extensions,
-				};
+		(modern as unknown as BareWebSocket).meta = (
+			modern as BareWebSocket2
+		).meta.then(() => {
+			const fakeHeaders: BareHeaders = {
+				'sec-websocket-protocol': modern.protocol,
+				'sec-websocket-extensions': modern.extensions,
+			};
 
-				return {
-					status: 200,
-					statusText: 'OK',
-					headers: new Headers(fakeHeaders as HeadersInit),
-					rawHeaders: fakeHeaders,
-				};
-			}
-		);
+			return {
+				status: 101,
+				statusText: 'Switching Protocols',
+				headers: new Headers(fakeHeaders as HeadersInit),
+				rawHeaders: fakeHeaders,
+			} as XBare;
+		});
 
-		return modern as BareWebSocket;
+		return modern as unknown as BareWebSocket;
 	}
 }

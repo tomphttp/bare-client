@@ -193,7 +193,7 @@ export default class ClientV3
 
 		const responseHeaders = joinHeaders(response.headers);
 
-		const result: XBare = {};
+		const result: Partial<XBare> = {};
 
 		if (responseHeaders.has('x-bare-status')) {
 			result.status = parseInt(responseHeaders.get('x-bare-status')!);
@@ -208,7 +208,7 @@ export default class ClientV3
 			result.headers = new Headers(<HeadersInit>result.rawHeaders);
 		}
 
-		return result;
+		return result as XBare;
 	}
 	createBareHeaders(
 		remote: URL,

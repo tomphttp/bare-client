@@ -18,10 +18,10 @@ export type BareCache =
 	| string;
 
 export interface XBare {
-	status?: number;
-	statusText?: string;
-	headers?: Headers;
-	rawHeaders?: BareHeaders;
+	status: number;
+	statusText: string;
+	headers: Headers;
+	rawHeaders: BareHeaders;
 }
 
 export interface XBare2 {

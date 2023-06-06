@@ -61,7 +61,7 @@ export default class ClientV2 extends LegacyClient implements GenericClient {
 					method: 'GET',
 				});
 
-				resolve(await this.readBareResponse(outgoing));
+				resolve(await this.readBareResponse(outgoing, true));
 			});
 
 			socket.addEventListener('error', reject);
@@ -143,29 +143,43 @@ export default class ClientV2 extends LegacyClient implements GenericClient {
 
 		return <BareResponse>result;
 	}
-	private async readBareResponse(response: Response): Promise<XBare> {
+	private async readBareResponse(
+		response: Response,
+		webSocket = false
+	): Promise<XBare> {
 		if (!response.ok) {
 			throw new BareError(response.status, await response.json());
 		}
 
 		const responseHeaders = joinHeaders(response.headers);
 
-		const result: XBare = {};
+		const result: Partial<XBare> = {};
 
-		if (responseHeaders.has('x-bare-status')) {
-			result.status = parseInt(responseHeaders.get('x-bare-status')!);
+		const xBareStatus = responseHeaders.get('x-bare-status');
+
+		result.status =
+			xBareStatus !== null ? parseInt(xBareStatus) : webSocket ? 101 : 200;
+
+		const xBareStatusText = responseHeaders.get('x-bare-status-text');
+
+		result.statusText =
+			xBareStatusText !== null
+				? xBareStatusText
+				: webSocket
+				? 'Switching Protocols'
+				: 'OK';
+
+		const xBareHeaders = responseHeaders.get('x-bare-headers');
+
+		if (xBareHeaders !== null) {
+			result.rawHeaders = JSON.parse(xBareHeaders);
+		} else {
+			result.rawHeaders = {};
 		}
 
-		if (responseHeaders.has('x-bare-status-text')) {
-			result.statusText = responseHeaders.get('x-bare-status-text')!;
-		}
+		result.headers = new Headers(result.rawHeaders as HeadersInit);
 
-		if (responseHeaders.has('x-bare-headers')) {
-			result.rawHeaders = JSON.parse(responseHeaders.get('x-bare-headers')!);
-			result.headers = new Headers(<HeadersInit>result.rawHeaders);
-		}
-
-		return result;
+		return result as XBare;
 	}
 	createBareHeaders(
 		remote: URL,
