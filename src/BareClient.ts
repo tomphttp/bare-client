@@ -6,6 +6,7 @@ import type {
 	BareWebSocket,
 	BareWebSocketMetaFull,
 	MetaEvent,
+	ReadyStateEvent,
 	urlLike,
 } from './BareTypes';
 import { maxRedirects } from './BareTypes';
@@ -32,6 +33,12 @@ export async function fetchManifest(
 
 	return await outgoing.json();
 }
+
+// get the unhooked value
+const getRealReadyState = Object.getOwnPropertyDescriptor(
+	WebSocket.prototype,
+	'readyState'
+)!.get!;
 
 const wsProtocols = ['ws:', 'wss:'];
 
@@ -147,6 +154,7 @@ export class BareClient {
 			(meta) => {
 				const metaEvent = new Event('meta') as MetaEvent;
 
+				// prepare the event
 				const metaFull = Object.freeze({
 					url: remote.toString(),
 					...meta,
@@ -169,6 +177,31 @@ export class BareClient {
 
 					Object.defineProperty(socket, 'url', {
 						get: () => metaFull.url,
+						configurable: true,
+						enumerable: true,
+					});
+				}
+			},
+			(readyState) => {
+				const readyStateEvent = new Event('readyState') as ReadyStateEvent;
+
+				// prepare the event
+				Object.defineProperty(readyStateEvent, 'readyState', {
+					value: readyState,
+					writable: false,
+					configurable: false,
+				});
+
+				// define the properties ourselves by default if dispatchEvent returns true
+				// true is returned when nothing is done to cancel the event (preventDefault, cancellable)
+				if (!socket.dispatchEvent(readyStateEvent)) {
+					Object.defineProperty(socket, 'readyState', {
+						get: () => {
+							const realReadyState = getRealReadyState.call(socket);
+							// readyState should only be faked when the real readyState is OPEN
+							if (realReadyState === WebSocket.OPEN) return readyState;
+							else return realReadyState;
+						},
 						configurable: true,
 						enumerable: true,
 					});

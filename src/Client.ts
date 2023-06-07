@@ -28,13 +28,15 @@ export class BareError extends Error {
 }
 
 export type MetaCallback = (meta: BareWebSocketMeta) => void;
+export type ReadyStateCallback = (readyState: number) => void;
 
 export abstract class Client {
 	abstract connect(
 		remote: URL,
 		protocols: string[],
 		requestHeaders: BareHeaders,
-		onMeta: MetaCallback
+		onMeta: MetaCallback,
+		onReadyState: ReadyStateCallback
 	): WebSocket;
 	abstract request(
 		method: BareMethod,

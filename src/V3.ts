@@ -7,7 +7,7 @@ import type {
 	BareWebSocket,
 } from './BareTypes.js';
 import { BareError, Client, statusEmpty } from './Client.js';
-import type { MetaCallback } from './Client.js';
+import type { ReadyStateCallback, MetaCallback } from './Client.js';
 import type {
 	BareResponseHeaders,
 	SocketClientToServer,
@@ -35,7 +35,8 @@ export default class ClientV3 extends Client {
 		remote: URL,
 		protocols: string[],
 		requestHeaders: BareHeaders,
-		onMeta: MetaCallback
+		onMeta: MetaCallback,
+		onReadyState: ReadyStateCallback
 	) {
 		const ws: WebSocket & Partial<BareWebSocket> = new WebSocket(this.ws);
 
@@ -68,17 +69,27 @@ export default class ClientV3 extends Client {
 				setCookies: message.setCookies,
 			});
 
+			// now we want the client to see the websocket is open and ready to communicate with the remote
+			onReadyState(WebSocket.OPEN);
+
 			ws.dispatchEvent(new Event('open'));
 		};
 
 		ws.addEventListener('close', closeListener);
 		ws.addEventListener('message', messageListener);
 
+		// CONNECTED TO THE BARE SERVER, NOT THE REMOTE
 		ws.addEventListener(
 			'open',
 			(event) => {
-				// we need to send our real "open" event
+				// we have to cancel this event because it doesn't reflect the connection to the remote
+				// once we are actually connected to the remote, we can dispatch a fake open event.
 				event.stopImmediatePropagation();
+
+				// we need to fake the readyState value again so it remains CONNECTING
+				// right now, it's open because we just connected to the remote
+				// but we need to fake this from the client so it thinks it's still connecting
+				onReadyState(WebSocket.CONNECTING);
 
 				ws.send(
 					JSON.stringify({
