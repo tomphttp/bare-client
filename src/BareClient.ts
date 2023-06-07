@@ -153,7 +153,7 @@ export class BareClient {
 				} as BareWebSocketMetaFull);
 
 				Object.defineProperty(metaEvent, 'meta', {
-					value: meta,
+					value: metaFull,
 					writable: false,
 					configurable: false,
 				});
