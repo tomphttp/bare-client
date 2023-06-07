@@ -1,12 +1,8 @@
 import type {
-	BareBodyInit,
-	BareCache,
 	BareHeaders,
 	BareManifest,
-	BareMethod,
 	BareResponse,
 	BareResponseFetch,
-	BareWebSocket,
 	urlLike,
 } from './BareTypes';
 import { maxRedirects } from './BareTypes';
@@ -94,36 +90,6 @@ export class BareClient {
 
 		throw new Error(`Unable to find compatible client version.`);
 	}
-	async request(
-		method: BareMethod,
-		requestHeaders: BareHeaders,
-		body: BareBodyInit,
-		remote: URL,
-		cache: BareCache | undefined,
-		signal: AbortSignal | undefined
-	): Promise<BareResponse> {
-		const client = await this.demand();
-
-		return await client.request(
-			method,
-			requestHeaders,
-			body,
-			remote,
-			cache,
-			signal
-		);
-	}
-	connect(
-		requestHeaders: BareHeaders,
-		remote: URL,
-		protocols: string[]
-	): BareWebSocket {
-		if (!this.client)
-			throw new TypeError(
-				'You need to wait for the client to finish fetching the manifest before creating any WebSockets. Try caching the manifest data before making this request.'
-			);
-		return this.client.connect(requestHeaders, remote, protocols);
-	}
 	createWebSocket(
 		remote: urlLike,
 		headers: BareHeaders | Headers | undefined = {},
@@ -192,12 +158,14 @@ export class BareClient {
 
 		let urlO = new URL(req.url);
 
+		const client = await this.demand();
+
 		for (let i = 0; ; i++) {
 			if ('host' in headers) headers.host = urlO.host;
 			else headers.Host = urlO.host;
 
 			const response: BareResponse & Partial<BareResponseFetch> =
-				await this.request(
+				await client.request(
 					req.method,
 					headers,
 					req.body,
