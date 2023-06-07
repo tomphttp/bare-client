@@ -34,6 +34,8 @@ export async function fetchManifest(
 	return await outgoing.json();
 }
 
+const wsProtocols = ['ws:', 'wss:'];
+
 export class BareClient {
 	manfiest?: BareManifest;
 	private client?: GenericClient;
@@ -132,10 +134,31 @@ export class BareClient {
 				'You need to wait for the client to finish fetching the manifest before creating any WebSockets. Try caching the manifest data before making this request.'
 			);
 
+		try {
+			remote = new URL(remote);
+		} catch (err) {
+			throw new DOMException(
+				`Faiiled to construct 'WebSocket': The URL '${remote}' is invalid.`
+			);
+		}
+
+		if (!wsProtocols.includes(remote.protocol))
+			throw new DOMException(
+				`Failed to construct 'WebSocket': The URL's scheme must be either 'ws' or 'wss'. '${remote.protocol}' is not allowed.`
+			);
+
+		if (!Array.isArray(protocols)) protocols = [protocols];
+
+		protocols = protocols.map(String);
+
+		for (const proto of protocols)
+			if (!validProtocol(proto))
+				throw new DOMException(
+					`Failed to construct 'WebSocket': The subprotocol '${proto}' is invalid.`
+				);
+
 		const requestHeaders: BareHeaders =
 			headers instanceof Headers ? Object.fromEntries(headers) : headers;
-
-		remote = new URL(remote);
 
 		// user is expected to specify user-agent and origin
 		// both are in spec
@@ -147,14 +170,6 @@ export class BareClient {
 		requestHeaders['Upgrade'] = 'websocket';
 		// requestHeaders['User-Agent'] = navigator.userAgent;
 		requestHeaders['Connection'] = 'Upgrade';
-
-		if (typeof protocols === 'string') protocols = [protocols];
-
-		for (const proto of protocols)
-			if (!validProtocol(proto))
-				throw new DOMException(
-					`Failed to construct 'WebSocket': The subprotocol '${proto}' is invalid.`
-				);
 
 		return this.client.connect(requestHeaders, remote, protocols);
 	}
