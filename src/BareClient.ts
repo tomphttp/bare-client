@@ -9,7 +9,7 @@ import type {
 	urlLike,
 } from './BareTypes';
 import { maxRedirects } from './BareTypes';
-import type { Client } from './Client';
+import type { Client, WebSocketImpl } from './Client';
 import { statusRedirect } from './Client';
 import ClientV3 from './V3';
 import { validProtocol } from './encodeProtocol';
@@ -112,7 +112,10 @@ export class BareClient {
 		readyStateHook?:
 			| ((socket: WebSocket, getReadyState: () => number) => void)
 			| undefined,
-		sendHook?: (socket: WebSocket, getReadyState: () => number) => void
+		sendHook?:
+			| ((socket: WebSocket, getReadyState: () => number) => void)
+			| undefined,
+		webSocketImpl: WebSocketImpl = WebSocket
 	): BareWebSocket {
 		if (!this.client)
 			throw new TypeError(
@@ -193,7 +196,8 @@ export class BareClient {
 			},
 			(readyState) => {
 				fakeReadyState = readyState;
-			}
+			},
+			webSocketImpl
 		);
 
 		let fakeReadyState: number = WebSocket.CONNECTING;

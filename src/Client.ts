@@ -29,6 +29,9 @@ export class BareError extends Error {
 
 export type MetaCallback = (meta: BareWebSocketMeta) => void;
 export type ReadyStateCallback = (readyState: number) => void;
+export type WebSocketImpl = {
+	new (...args: ConstructorParameters<typeof WebSocket>): WebSocket;
+};
 
 export abstract class Client {
 	abstract connect(
@@ -36,7 +39,8 @@ export abstract class Client {
 		protocols: string[],
 		requestHeaders: BareHeaders,
 		onMeta: MetaCallback,
-		onReadyState: ReadyStateCallback
+		onReadyState: ReadyStateCallback,
+		webSocketImpl: WebSocketImpl
 	): WebSocket;
 	abstract request(
 		method: BareMethod,
