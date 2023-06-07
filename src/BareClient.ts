@@ -14,6 +14,7 @@ import type { Client } from './Client';
 import { statusRedirect } from './Client';
 import ClientV3 from './V3';
 import { validProtocol } from './encodeProtocol';
+import { sendWebSocket } from './snapshot';
 
 const clientCtors: [string, { new (server: URL): Client }][] = [
 	['v3', ClientV3],
@@ -103,7 +104,8 @@ export class BareClient {
 	createWebSocket(
 		remote: urlLike,
 		protocols: string | string[] | undefined = [],
-		headers: BareHeaders | Headers | undefined = {}
+		headers: BareHeaders | Headers | undefined = {},
+		sendHook?: (socket: WebSocket, getReadyState: () => number) => void
 	): BareWebSocket {
 		if (!this.client)
 			throw new TypeError(
@@ -183,6 +185,8 @@ export class BareClient {
 				}
 			},
 			(readyState) => {
+				fakeReadyState = readyState;
+
 				const readyStateEvent = new Event('readyState') as ReadyStateEvent;
 
 				// prepare the event
@@ -196,18 +200,46 @@ export class BareClient {
 				// true is returned when nothing is done to cancel the event (preventDefault, cancellable)
 				if (!socket.dispatchEvent(readyStateEvent)) {
 					Object.defineProperty(socket, 'readyState', {
-						get: () => {
-							const realReadyState = getRealReadyState.call(socket);
-							// readyState should only be faked when the real readyState is OPEN
-							if (realReadyState === WebSocket.OPEN) return readyState;
-							else return realReadyState;
-						},
+						get: () => getReadyState(),
 						configurable: true,
 						enumerable: true,
 					});
 				}
 			}
 		);
+
+		let fakeReadyState: number = WebSocket.CONNECTING;
+
+		const getReadyState = () => {
+			const realReadyState = getRealReadyState.call(socket);
+			// readyState should only be faked when the real readyState is OPEN
+			return realReadyState === WebSocket.OPEN
+				? fakeReadyState
+				: realReadyState;
+		};
+
+		if (sendHook) sendHook(socket, getReadyState);
+		else {
+			// we have to hook .send ourselves
+			socket.send = function (data) {
+				const readyState = getReadyState();
+
+				switch (readyState) {
+					case WebSocket.CONNECTING:
+						throw new DOMException(
+							"Failed to execute 'send' on 'WebSocket': Still in CONNECTING state."
+						);
+					case WebSocket.CLOSED:
+					case WebSocket.CLOSING:
+						// no error is thrown
+						console.error('WebSocket is already in CLOSING or CLOSED state.');
+						break;
+					default:
+						sendWebSocket.call(this, data);
+						break;
+				}
+			};
+		}
 
 		return socket;
 	}
