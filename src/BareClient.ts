@@ -9,12 +9,12 @@ import type {
 	urlLike,
 } from './BareTypes';
 import { maxRedirects } from './BareTypes';
-import type { GenericClient } from './Client';
+import type { Client } from './Client';
 import { statusRedirect } from './Client';
 import ClientV3 from './V3';
 import { validProtocol } from './encodeProtocol';
 
-const clientCtors: [string, { new (server: URL): GenericClient }][] = [
+const clientCtors: [string, { new (server: URL): Client }][] = [
 	['v3', ClientV3],
 ];
 
@@ -37,9 +37,9 @@ const wsProtocols = ['ws:', 'wss:'];
 
 export class BareClient {
 	manfiest?: BareManifest;
-	private client?: GenericClient;
+	private client?: Client;
 	private server: URL;
-	private working?: Promise<GenericClient>;
+	private working?: Promise<Client>;
 	private onDemand: boolean;
 	private onDemandSignal?: AbortSignal;
 	/**

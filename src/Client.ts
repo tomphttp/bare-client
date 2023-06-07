@@ -29,14 +29,14 @@ export class BareError extends Error {
 
 export type MetaCallback = (meta: BareWebSocketMeta) => void;
 
-export interface GenericClient {
-	connect(
+export abstract class Client {
+	abstract connect(
 		remote: URL,
 		protocols: string[],
 		requestHeaders: BareHeaders,
 		onMeta: MetaCallback
 	): WebSocket;
-	request(
+	abstract request(
 		method: BareMethod,
 		requestHeaders: BareHeaders,
 		body: BareBodyInit,
@@ -44,9 +44,6 @@ export interface GenericClient {
 		cache: BareCache | undefined,
 		signal: AbortSignal | undefined
 	): Promise<BareResponse>;
-}
-
-export class Client {
 	protected base: URL;
 	/**
 	 *

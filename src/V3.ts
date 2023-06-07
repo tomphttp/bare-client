@@ -7,7 +7,7 @@ import type {
 	BareWebSocket,
 } from './BareTypes.js';
 import { BareError, Client, statusEmpty } from './Client.js';
-import type { GenericClient, MetaCallback } from './Client.js';
+import type { MetaCallback } from './Client.js';
 import type {
 	BareResponseHeaders,
 	SocketClientToServer,
@@ -16,7 +16,7 @@ import type {
 import md5 from './md5.js';
 import { joinHeaders, splitHeaders } from './splitHeaderUtil.js';
 
-export default class ClientV3 extends Client implements GenericClient {
+export default class ClientV3 extends Client {
 	ws: URL;
 	http: URL;
 	constructor(server: URL) {
