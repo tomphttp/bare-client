@@ -13,7 +13,7 @@ import type { Client, WebSocketImpl } from './Client';
 import { statusRedirect } from './Client';
 import ClientV3 from './V3';
 import { validProtocol } from './encodeProtocol';
-import { sendWebSocket } from './snapshot';
+import { WebSocketFields } from './snapshot';
 
 const clientCtors: [string, { new (server: URL): Client }][] = [
 	['v3', ClientV3],
@@ -200,12 +200,12 @@ export class BareClient {
 			webSocketImpl
 		);
 
-		let fakeReadyState: number = WebSocket.CONNECTING;
+		let fakeReadyState: number = WebSocketFields.CONNECTING;
 
 		const getReadyState = () => {
 			const realReadyState = getRealReadyState.call(socket);
 			// readyState should only be faked when the real readyState is OPEN
-			return realReadyState === WebSocket.OPEN
+			return realReadyState === WebSocketFields.OPEN
 				? fakeReadyState
 				: realReadyState;
 		};
@@ -228,17 +228,17 @@ export class BareClient {
 				const readyState = getReadyState();
 
 				switch (readyState) {
-					case WebSocket.CONNECTING:
+					case WebSocketFields.CONNECTING:
 						throw new DOMException(
 							"Failed to execute 'send' on 'WebSocket': Still in CONNECTING state."
 						);
-					case WebSocket.CLOSED:
-					case WebSocket.CLOSING:
+					case WebSocketFields.CLOSED:
+					case WebSocketFields.CLOSING:
 						// no error is thrown
 						console.error('WebSocket is already in CLOSING or CLOSED state.');
 						break;
 					default:
-						sendWebSocket.call(this, data);
+						WebSocketFields.prototype.send.call(this, data);
 						break;
 				}
 			};

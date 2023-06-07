@@ -9,4 +9,12 @@ export const Request = globalThis.Request;
 export const Response = globalThis.Response;
 export const XMLHttpRequest = globalThis.XMLHttpRequest;
 
-export const sendWebSocket = WebSocket.prototype.send;
+export const WebSocketFields = {
+	prototype: {
+		send: WebSocket.prototype.send,
+	},
+	CLOSED: WebSocket.CLOSED,
+	CLOSING: WebSocket.CLOSING,
+	CONNECTING: WebSocket.CONNECTING,
+	OPEN: WebSocket.OPEN,
+};
