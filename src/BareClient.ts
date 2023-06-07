@@ -35,12 +35,6 @@ export async function fetchManifest(
 }
 
 export class BareClient {
-	/**
-	 * @depricated Use .manifest instead.
-	 */
-	get data(): BareClient['manfiest'] {
-		return this.manfiest;
-	}
 	manfiest?: BareManifest;
 	private client?: GenericClient;
 	private server: URL;
@@ -93,7 +87,8 @@ export class BareClient {
 	private getClient() {
 		// newest-oldest
 		for (const [version, ctor] of clientCtors)
-			if (this.data!.versions.includes(version)) return new ctor(this.server);
+			if (this.manfiest!.versions.includes(version))
+				return new ctor(this.server);
 
 		throw new Error(`Unable to find compatible client version.`);
 	}
