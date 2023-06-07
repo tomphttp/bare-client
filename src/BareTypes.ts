@@ -72,15 +72,18 @@ export interface BareWebSocket extends WebSocket {
 /**
  * A Response with additional properties.
  */
-export type BareResponse = Response & {
+export interface BareResponse extends Response {
 	rawResponse: Response;
 	rawHeaders: BareHeaders;
-};
+}
 
 /**
  * A BareResponse with additional properties.
  */
-export type BareResponseFetch = BareResponse & { finalURL: string };
+export interface BareResponseFetch extends BareResponse {
+	finalURL: string;
+}
+
 export type BareBodyInit =
 	| Blob
 	| BufferSource
@@ -99,19 +102,19 @@ export type BareFetchInit = {
 	signal?: AbortSignal;
 };
 
-export type BareMaintainer = {
+export interface BareMaintainer {
 	email?: string;
 	website?: string;
-};
+}
 
-export type BareProject = {
+export interface BareProject {
 	name?: string;
 	description?: string;
 	email?: string;
 	website?: string;
 	repository?: string;
 	version?: string;
-};
+}
 
 export type BareLanguage =
 	| 'NodeJS'
@@ -129,10 +132,10 @@ export type BareLanguage =
 	| 'Shell'
 	| string;
 
-export type BareManifest = {
+export interface BareManifest {
 	maintainer?: BareMaintainer;
 	project?: BareProject;
 	versions: string[];
 	language: BareLanguage;
 	memoryUsage?: number;
-};
+}
