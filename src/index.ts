@@ -4,6 +4,8 @@ export { BareClient };
 
 export * from './Client';
 
+export * from './BareTypes';
+
 /**
  *
  * Facilitates fetching the Bare server and constructing a BareClient.
