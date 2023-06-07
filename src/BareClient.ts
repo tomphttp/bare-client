@@ -7,21 +7,16 @@ import type {
 	BareResponse,
 	BareResponseFetch,
 	BareWebSocket,
-	BareWebSocket2,
 	urlLike,
 } from './BareTypes';
 import { maxRedirects } from './BareTypes';
 import type { GenericClient } from './Client';
 import { statusRedirect } from './Client';
-import ClientV1 from './V1';
-import ClientV2 from './V2';
 import ClientV3 from './V3';
 import { validProtocol } from './encodeProtocol';
 
 const clientCtors: [string, { new (server: URL): GenericClient }][] = [
 	['v3', ClientV3],
-	['v2', ClientV2],
-	['v1', ClientV1],
 ];
 
 export async function fetchManifest(
@@ -121,57 +116,16 @@ export class BareClient {
 			signal
 		);
 	}
-	async legacyConnect(
-		requestHeaders: BareHeaders,
-		remote: URL
-	): Promise<BareWebSocket> {
-		const client = await this.demand();
-		return client.legacyConnect(requestHeaders, remote);
-	}
 	connect(
 		requestHeaders: BareHeaders,
 		remote: URL,
 		protocols: string[]
-	): BareWebSocket2 {
+	): BareWebSocket {
 		if (!this.client)
 			throw new TypeError(
 				'You need to wait for the client to finish fetching the manifest before creating any WebSockets. Try caching the manifest data before making this request.'
 			);
 		return this.client.connect(requestHeaders, remote, protocols);
-	}
-	legacyCreateWebSocket(
-		remote: urlLike,
-		headers: BareHeaders | Headers | undefined = {},
-		protocols: string | string[] = []
-	): Promise<BareWebSocket> {
-		const requestHeaders: BareHeaders =
-			headers instanceof Headers ? Object.fromEntries(headers) : headers;
-
-		remote = new URL(remote);
-
-		// user is expected to specify user-agent and origin
-		// both are in spec
-
-		requestHeaders['Host'] = remote.host;
-		// requestHeaders['Origin'] = origin;
-		requestHeaders['Pragma'] = 'no-cache';
-		requestHeaders['Cache-Control'] = 'no-cache';
-		requestHeaders['Upgrade'] = 'websocket';
-		// requestHeaders['User-Agent'] = navigator.userAgent;
-		requestHeaders['Connection'] = 'Upgrade';
-
-		if (typeof protocols === 'string') protocols = [protocols];
-
-		for (const proto of protocols)
-			if (!validProtocol(proto))
-				throw new DOMException(
-					`Failed to construct 'WebSocket': The subprotocol '${proto}' is invalid.`
-				);
-
-		if (protocols.length)
-			requestHeaders['Sec-Websocket-Protocol'] = protocols.join(', ');
-
-		return this.legacyConnect(requestHeaders, remote);
 	}
 	createWebSocket(
 		remote: urlLike,

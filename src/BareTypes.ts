@@ -17,14 +17,7 @@ export type BareCache =
 	| 'only-if-cached'
 	| string;
 
-export interface XBare {
-	status: number;
-	statusText: string;
-	headers: Headers;
-	rawHeaders: BareHeaders;
-}
-
-export interface XBare2 {
+export interface WebSocketMeta {
 	protocol: string;
 	setCookies: string[];
 }
@@ -41,12 +34,7 @@ export type BareHeaders = Record<string, string | string[]>;
 /**
  * WebSocket with an additional property.
  */
-export type BareWebSocket = WebSocket & { meta: Promise<XBare> };
-
-/**
- * WebSocket with an additional property.
- */
-export type BareWebSocket2 = WebSocket & { meta: Promise<XBare2> };
+export type BareWebSocket = WebSocket & { meta: Promise<WebSocketMeta> };
 
 /**
  * A Response with additional properties.

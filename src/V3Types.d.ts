@@ -1,6 +1,12 @@
 import type { BareHeaders } from './BareTypes.js';
 
-export type SocketClientToServer = {
+export interface BareResponseHeaders {
+	status: number;
+	statusText: string;
+	headers: BareHeaders;
+}
+
+export interface SocketClientToServer {
 	type: 'connect';
 	/**
 	 * Remote to connect to
@@ -18,9 +24,9 @@ export type SocketClientToServer = {
 	 * Forwards to forward from the WebSocket handshake (eg. User-Agent)
 	 */
 	forwardHeaders: string[];
-};
+}
 
-export type SocketServerToClient = {
+export interface SocketServerToClient {
 	type: 'open';
 	/**
 	 * The protocl that the remote chose.
@@ -30,4 +36,4 @@ export type SocketServerToClient = {
 	 * A list of cookies that correspond to the remote's set-cookies
 	 */
 	setCookies: string[];
-};
+}

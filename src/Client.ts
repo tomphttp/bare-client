@@ -5,8 +5,6 @@ import type {
 	BareMethod,
 	BareResponse,
 	BareWebSocket,
-	BareWebSocket2,
-	XBare,
 } from './BareTypes.js';
 
 export const statusEmpty = [101, 204, 205, 304];
@@ -30,21 +28,11 @@ export class BareError extends Error {
 }
 
 export interface GenericClient {
-	/**
-	 * V1-V2
-	 */
-	legacyConnect(
-		requestHeaders: BareHeaders,
-		remote: URL
-	): Promise<BareWebSocket>;
-	/**
-	 * V3+
-	 */
 	connect(
 		requestHeaders: BareHeaders,
 		remote: URL,
 		protocols: string[]
-	): BareWebSocket2;
+	): BareWebSocket;
 	request(
 		method: BareMethod,
 		requestHeaders: BareHeaders,
@@ -64,53 +52,5 @@ export class Client {
 	 */
 	constructor(version: number, server: URL) {
 		this.base = new URL(`./v${version}/`, server);
-	}
-}
-
-export class LegacyClient extends Client {
-	connect(): BareWebSocket2 {
-		throw new Error('Not supported');
-	}
-}
-
-export class ModernClient<T extends GenericClient> extends Client {
-	async legacyConnect(
-		requestHeaders: BareHeaders,
-		remote: URL
-	): Promise<BareWebSocket> {
-		const protocolHeader = Object.keys(requestHeaders).find(
-			(key) => key.toLowerCase() === 'sec-websocket-protocol'
-		);
-		const protocolValue =
-			typeof protocolHeader !== 'undefined'
-				? requestHeaders[protocolHeader]
-				: undefined;
-		const protocols =
-			typeof protocolValue !== 'undefined'
-				? protocolValue.toString().split(/,\s+/g)
-				: [];
-
-		const modern: WebSocket & (BareWebSocket | BareWebSocket2) = (
-			this as unknown as T
-		).connect(requestHeaders, remote, protocols);
-
-		// downgrade the meta
-		(modern as unknown as BareWebSocket).meta = (
-			modern as BareWebSocket2
-		).meta.then(() => {
-			const fakeHeaders: BareHeaders = {
-				'sec-websocket-protocol': modern.protocol,
-				'sec-websocket-extensions': modern.extensions,
-			};
-
-			return {
-				status: 101,
-				statusText: 'Switching Protocols',
-				headers: new Headers(fakeHeaders as HeadersInit),
-				rawHeaders: fakeHeaders,
-			} as XBare;
-		});
-
-		return modern as unknown as BareWebSocket;
 	}
 }

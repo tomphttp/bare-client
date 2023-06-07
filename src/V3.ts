@@ -4,19 +4,19 @@ import type {
 	BareHeaders,
 	BareMethod,
 	BareResponse,
-	BareWebSocket2,
-	XBare,
+	BareWebSocket,
 } from './BareTypes.js';
-import { BareError, ModernClient, statusEmpty } from './Client.js';
+import { BareError, Client, statusEmpty } from './Client.js';
 import type { GenericClient } from './Client.js';
-import type { SocketClientToServer, SocketServerToClient } from './V3Types.js';
+import type {
+	BareResponseHeaders,
+	SocketClientToServer,
+	SocketServerToClient,
+} from './V3Types.js';
 import md5 from './md5.js';
 import { joinHeaders, splitHeaders } from './splitHeaderUtil.js';
 
-export default class ClientV3
-	extends ModernClient<ClientV3>
-	implements GenericClient
-{
+export default class ClientV3 extends Client implements GenericClient {
 	ws: URL;
 	http: URL;
 	constructor(server: URL) {
@@ -32,7 +32,7 @@ export default class ClientV3
 		}
 	}
 	connect(requestHeaders: BareHeaders, remote: URL, protocols: string[] = []) {
-		const ws: WebSocket & Partial<BareWebSocket2> = new WebSocket(this.ws);
+		const ws: WebSocket & Partial<BareWebSocket> = new WebSocket(this.ws);
 
 		ws.meta = new Promise((resolve, reject) => {
 			const cleanup = () => {
@@ -101,7 +101,7 @@ export default class ClientV3
 			{ once: true }
 		);
 
-		return ws as BareWebSocket2;
+		return ws as BareWebSocket;
 	}
 	async request(
 		method: BareMethod,
@@ -166,40 +166,36 @@ export default class ClientV3
 		const result: Response & Partial<BareResponse> = new Response(
 			statusEmpty.includes(readResponse.status!) ? undefined : response.body,
 			{
-				status: readResponse.status!,
+				status: readResponse.status,
 				statusText: readResponse.statusText ?? undefined,
-				headers: readResponse.headers!,
+				headers: new Headers(readResponse.headers as HeadersInit),
 			}
 		);
 
-		result.rawHeaders = readResponse.rawHeaders;
+		result.rawHeaders = readResponse.headers;
 		result.rawResponse = response;
 
-		return <BareResponse>result;
+		return result as BareResponse;
 	}
-	private async readBareResponse(response: Response): Promise<XBare> {
+	private async readBareResponse(response: Response) {
 		if (!response.ok) {
 			throw new BareError(response.status, await response.json());
 		}
 
 		const responseHeaders = joinHeaders(response.headers);
 
-		const result: Partial<XBare> = {};
+		const result: Partial<BareResponseHeaders> = {};
 
-		if (responseHeaders.has('x-bare-status')) {
-			result.status = parseInt(responseHeaders.get('x-bare-status')!);
-		}
+		const xBareStatus = responseHeaders.get('x-bare-status');
+		if (xBareStatus !== null) result.status = parseInt(xBareStatus);
 
-		if (responseHeaders.has('x-bare-status-text')) {
-			result.statusText = responseHeaders.get('x-bare-status-text')!;
-		}
+		const xBareStatusText = responseHeaders.get('x-bare-status-text');
+		if (xBareStatusText !== null) result.statusText = xBareStatusText;
 
-		if (responseHeaders.has('x-bare-headers')) {
-			result.rawHeaders = JSON.parse(responseHeaders.get('x-bare-headers')!);
-			result.headers = new Headers(<HeadersInit>result.rawHeaders);
-		}
+		const xBareHeaders = responseHeaders.get('x-bare-headers');
+		if (xBareHeaders !== null) result.headers = JSON.parse(xBareHeaders);
 
-		return result as XBare;
+		return result as BareResponseHeaders;
 	}
 	createBareHeaders(
 		remote: URL,
