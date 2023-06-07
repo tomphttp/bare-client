@@ -29,9 +29,9 @@ export class BareError extends Error {
 
 export interface GenericClient {
 	connect(
-		requestHeaders: BareHeaders,
 		remote: URL,
-		protocols: string[]
+		protocols: string[],
+		requestHeaders: BareHeaders
 	): BareWebSocket;
 	request(
 		method: BareMethod,

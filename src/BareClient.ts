@@ -92,8 +92,8 @@ export class BareClient {
 	}
 	createWebSocket(
 		remote: urlLike,
-		headers: BareHeaders | Headers | undefined = {},
-		protocols: string | string[] = []
+		protocols: string | string[] | undefined = [],
+		headers: BareHeaders | Headers | undefined = {}
 	): WebSocket {
 		if (!this.client)
 			throw new TypeError(
@@ -137,7 +137,7 @@ export class BareClient {
 		// requestHeaders['User-Agent'] = navigator.userAgent;
 		requestHeaders['Connection'] = 'Upgrade';
 
-		return this.client.connect(requestHeaders, remote, protocols);
+		return this.client.connect(remote, protocols, requestHeaders);
 	}
 
 	async fetch(

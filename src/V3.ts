@@ -31,7 +31,7 @@ export default class ClientV3 extends Client implements GenericClient {
 			this.ws.protocol = 'ws:';
 		}
 	}
-	connect(requestHeaders: BareHeaders, remote: URL, protocols: string[] = []) {
+	connect(remote: URL, protocols: string[], requestHeaders: BareHeaders) {
 		const ws: WebSocket & Partial<BareWebSocket> = new WebSocket(this.ws);
 
 		ws.meta = new Promise((resolve, reject) => {
