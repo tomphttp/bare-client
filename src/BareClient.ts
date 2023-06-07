@@ -3,6 +3,9 @@ import type {
 	BareManifest,
 	BareResponse,
 	BareResponseFetch,
+	BareWebSocket,
+	BareWebSocketMetaFull,
+	MetaEvent,
 	urlLike,
 } from './BareTypes';
 import { maxRedirects } from './BareTypes';
@@ -94,7 +97,7 @@ export class BareClient {
 		remote: urlLike,
 		protocols: string | string[] | undefined = [],
 		headers: BareHeaders | Headers | undefined = {}
-	): WebSocket {
+	): BareWebSocket {
 		if (!this.client)
 			throw new TypeError(
 				'You need to wait for the client to finish fetching the manifest before creating any WebSockets. Try caching the manifest data before making this request.'
@@ -137,7 +140,43 @@ export class BareClient {
 		// requestHeaders['User-Agent'] = navigator.userAgent;
 		requestHeaders['Connection'] = 'Upgrade';
 
-		return this.client.connect(remote, protocols, requestHeaders);
+		const socket = this.client.connect(
+			remote,
+			protocols,
+			requestHeaders,
+			(meta) => {
+				const metaEvent = new Event('meta') as MetaEvent;
+
+				const metaFull = Object.freeze({
+					url: remote.toString(),
+					...meta,
+				} as BareWebSocketMetaFull);
+
+				Object.defineProperty(metaEvent, 'meta', {
+					value: meta,
+					writable: false,
+					configurable: false,
+				});
+
+				// define the properties ourselves by default if dispatchEvent returns true
+				// true is returned when nothing is done to cancel the event (preventDefault, cancellable)
+				if (!socket.dispatchEvent(metaEvent)) {
+					Object.defineProperty(socket, 'protocol', {
+						get: () => metaFull.protocol,
+						configurable: true,
+						enumerable: true,
+					});
+
+					Object.defineProperty(socket, 'url', {
+						get: () => metaFull.url,
+						configurable: true,
+						enumerable: true,
+					});
+				}
+			}
+		);
+
+		return socket;
 	}
 
 	async fetch(

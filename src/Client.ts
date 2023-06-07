@@ -4,7 +4,7 @@ import type {
 	BareHeaders,
 	BareMethod,
 	BareResponse,
-	BareWebSocket,
+	BareWebSocketMeta,
 } from './BareTypes.js';
 
 export const statusEmpty = [101, 204, 205, 304];
@@ -27,12 +27,15 @@ export class BareError extends Error {
 	}
 }
 
+export type MetaCallback = (meta: BareWebSocketMeta) => void;
+
 export interface GenericClient {
 	connect(
 		remote: URL,
 		protocols: string[],
-		requestHeaders: BareHeaders
-	): BareWebSocket;
+		requestHeaders: BareHeaders,
+		onMeta: MetaCallback
+	): WebSocket;
 	request(
 		method: BareMethod,
 		requestHeaders: BareHeaders,

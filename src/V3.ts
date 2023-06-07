@@ -7,7 +7,7 @@ import type {
 	BareWebSocket,
 } from './BareTypes.js';
 import { BareError, Client, statusEmpty } from './Client.js';
-import type { GenericClient } from './Client.js';
+import type { GenericClient, MetaCallback } from './Client.js';
 import type {
 	BareResponseHeaders,
 	SocketClientToServer,
@@ -31,55 +31,48 @@ export default class ClientV3 extends Client implements GenericClient {
 			this.ws.protocol = 'ws:';
 		}
 	}
-	connect(remote: URL, protocols: string[], requestHeaders: BareHeaders) {
+	connect(
+		remote: URL,
+		protocols: string[],
+		requestHeaders: BareHeaders,
+		onMeta: MetaCallback
+	) {
 		const ws: WebSocket & Partial<BareWebSocket> = new WebSocket(this.ws);
 
-		ws.meta = new Promise((resolve, reject) => {
-			const cleanup = () => {
-				ws.removeEventListener('close', closeListener);
-				ws.removeEventListener('message', messageListener);
-			};
+		const cleanup = () => {
+			ws.removeEventListener('close', closeListener);
+			ws.removeEventListener('message', messageListener);
+		};
 
-			const closeListener = () => {
-				reject('WebSocket closed before handshake could be completed');
-				cleanup();
-			};
+		const closeListener = () => {
+			cleanup();
+		};
 
-			const messageListener = (event: MessageEvent) => {
-				cleanup();
+		const messageListener = (event: MessageEvent) => {
+			cleanup();
 
-				// ws.binaryType is irrelevant when sending text
-				if (typeof event.data !== 'string')
-					throw new TypeError(
-						'the first websocket message was not a text frame'
-					);
+			// ws.binaryType is irrelevant when sending text
+			if (typeof event.data !== 'string')
+				throw new TypeError('the first websocket message was not a text frame');
 
-				const message = JSON.parse(event.data) as SocketServerToClient;
+			const message = JSON.parse(event.data) as SocketServerToClient;
 
-				// finally
-				if (message.type !== 'open')
-					throw new TypeError('message was not of open type');
+			// finally
+			if (message.type !== 'open')
+				throw new TypeError('message was not of open type');
 
-				ws.dispatchEvent(new Event('open'));
+			event.stopImmediatePropagation();
 
-				event.stopImmediatePropagation();
+			onMeta({
+				protocol: message.protocol,
+				setCookies: message.setCookies,
+			});
 
-				// TODO: allow passing a function that is called in place of Object.defineProperty to lay the hook on this websocket in particular
-				Object.defineProperty(WebSocket.prototype, 'protocol', {
-					get: () => message.protocol,
-					configurable: true, // let the client undefine it if it doesn't like how we set it
-					enumerable: true,
-				});
+			ws.dispatchEvent(new Event('open'));
+		};
 
-				resolve({
-					protocol: message.protocol,
-					setCookies: message.setCookies,
-				});
-			};
-
-			ws.addEventListener('close', closeListener);
-			ws.addEventListener('message', messageListener);
-		});
+		ws.addEventListener('close', closeListener);
+		ws.addEventListener('message', messageListener);
 
 		ws.addEventListener(
 			'open',

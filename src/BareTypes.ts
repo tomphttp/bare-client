@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export type BareMethod =
 	| 'GET'
 	| 'POST'
@@ -17,7 +18,7 @@ export type BareCache =
 	| 'only-if-cached'
 	| string;
 
-export interface WebSocketMeta {
+export interface BareWebSocketMeta {
 	protocol: string;
 	setCookies: string[];
 }
@@ -32,9 +33,41 @@ export const maxRedirects = 20;
 export type BareHeaders = Record<string, string | string[]>;
 
 /**
+ * metadata with the URL for convenience
+ */
+export interface BareWebSocketMetaFull extends BareWebSocketMeta {
+	url: string;
+}
+
+/** A MetaEvent is sent to clients using WebSockets when the metadata is received and before the open event is dispatched. By default, the Bare client will define the protocol and url on the WebSocket. Clients can cancel this behavior by calling event.preventDefault(). */
+export interface MetaEvent extends Event {
+	/** Returns the metadata received from the server. */
+	readonly meta: BareWebSocketMetaFull;
+}
+
+export interface BareWebSocketEventMap {
+	meta: MetaEvent;
+}
+
+/**
  * WebSocket with an additional property.
  */
-export type BareWebSocket = WebSocket & { meta: Promise<WebSocketMeta> };
+export interface BareWebSocket extends WebSocket {
+	addEventListener: {
+		<K extends keyof BareWebSocketEventMap>(
+			type: K,
+			listener: (this: WebSocket, ev: BareWebSocketEventMap[K]) => any,
+			options?: boolean | AddEventListenerOptions
+		): void;
+	} & WebSocket['addEventListener'];
+	removeEventListener: {
+		<K extends keyof BareWebSocketEventMap>(
+			type: K,
+			listener: (this: WebSocket, ev: BareWebSocketEventMap[K]) => any,
+			options?: boolean | EventListenerOptions
+		): void;
+	} & WebSocket['addEventListener'];
+}
 
 /**
  * A Response with additional properties.
