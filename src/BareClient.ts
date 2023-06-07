@@ -6,7 +6,6 @@ import type {
 	BareWebSocket,
 	BareWebSocketMetaFull,
 	MetaEvent,
-	ReadyStateEvent,
 	urlLike,
 } from './BareTypes';
 import { maxRedirects } from './BareTypes';
@@ -105,6 +104,9 @@ export class BareClient {
 		remote: urlLike,
 		protocols: string | string[] | undefined = [],
 		headers: BareHeaders | Headers | undefined = {},
+		readyStateHook?:
+			| ((socket: WebSocket, getReadyState: () => number) => void)
+			| undefined,
 		sendHook?: (socket: WebSocket, getReadyState: () => number) => void
 	): BareWebSocket {
 		if (!this.client)
@@ -186,25 +188,6 @@ export class BareClient {
 			},
 			(readyState) => {
 				fakeReadyState = readyState;
-
-				const readyStateEvent = new Event('readyState') as ReadyStateEvent;
-
-				// prepare the event
-				Object.defineProperty(readyStateEvent, 'readyState', {
-					value: readyState,
-					writable: false,
-					configurable: false,
-				});
-
-				// define the properties ourselves by default if dispatchEvent returns true
-				// true is returned when nothing is done to cancel the event (preventDefault, cancellable)
-				if (!socket.dispatchEvent(readyStateEvent)) {
-					Object.defineProperty(socket, 'readyState', {
-						get: () => getReadyState(),
-						configurable: true,
-						enumerable: true,
-					});
-				}
 			}
 		);
 
@@ -217,6 +200,17 @@ export class BareClient {
 				? fakeReadyState
 				: realReadyState;
 		};
+
+		if (readyStateHook) readyStateHook(socket, getReadyState);
+		else {
+			// we have to hook .readyState ourselves
+
+			Object.defineProperty(socket, 'readyState', {
+				get: getReadyState,
+				configurable: true,
+				enumerable: true,
+			});
+		}
 
 		if (sendHook) sendHook(socket, getReadyState);
 		else {

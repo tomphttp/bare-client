@@ -49,21 +49,8 @@ export interface MetaEvent extends Event {
 	readonly meta: BareWebSocketMetaFull;
 }
 
-/**
- * A ReadyStateEvent is sent to clients using WebSockets whenever the readyState value should change.
- * By default, the Bare client will define the readyState on the WebSocket.
- * This value should only be used as the readyState if the actual readyState is WebSocket.OPEN, otherwise the real readyState should be returned.
- * This is because this readyState value is only used to hide the Bare server being connected to, and to show that the socket is connected to the remote.
- * Clients can cancel replace behavior with their own by calling event.preventDefault().
- **/
-export interface ReadyStateEvent extends Event {
-	/** Returns the intended readyState value. */
-	readonly readyState: number;
-}
-
 export interface BareWebSocketEventMap {
 	meta: MetaEvent;
-	readyState: ReadyStateEvent;
 }
 
 /**
