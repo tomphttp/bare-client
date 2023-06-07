@@ -121,7 +121,7 @@ export default class ClientV3 extends Client implements GenericClient {
 			result.rawHeaders = Object.fromEntries(response.headers);
 			result.rawResponse = response;
 
-			return <BareResponse>result;
+			return result as BareResponse;
 		}
 
 		const bareHeaders: BareHeaders = {};
@@ -145,7 +145,7 @@ export default class ClientV3 extends Client implements GenericClient {
 		};
 
 		if (cache !== 'only-if-cached') {
-			options.cache = <RequestCache>cache;
+			options.cache = cache as RequestCache;
 		}
 
 		if (body !== undefined) {

@@ -207,10 +207,10 @@ export class BareClient {
 					case 'error':
 						throw new TypeError('Failed to fetch');
 					case 'manual':
-						return <BareResponseFetch>response;
+						return response as BareResponseFetch;
 				}
 			} else {
-				return <BareResponseFetch>response;
+				return response as BareResponseFetch;
 			}
 		}
 	}
