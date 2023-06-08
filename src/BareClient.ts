@@ -113,7 +113,7 @@ export class BareClient {
 			| ((socket: WebSocket, getReadyState: () => number) => void)
 			| undefined,
 		sendHook?:
-			| ((socket: WebSocket, getReadyState: () => number) => void)
+			| ((socket: WebSocket, getSendError: () => Error | undefined) => void)
 			| undefined,
 		webSocketImpl: WebSocketImpl = WebSocket
 	): BareWebSocket {
@@ -221,26 +221,26 @@ export class BareClient {
 			});
 		}
 
-		if (sendHook) sendHook(socket, getReadyState);
+		/**
+		 * @returns The error that should be thrown if send() were to be called on this socket according to the fake readyState value
+		 */
+		const getSendError = () => {
+			const readyState = getReadyState();
+
+			if (readyState === WebSocketFields.CONNECTING)
+				return new DOMException(
+					"Failed to execute 'send' on 'WebSocket': Still in CONNECTING state."
+				);
+		};
+
+		if (sendHook) sendHook(socket, getSendError);
 		else {
 			// we have to hook .send ourselves
 			socket.send = function (data) {
-				const readyState = getReadyState();
+				const error = getSendError();
 
-				switch (readyState) {
-					case WebSocketFields.CONNECTING:
-						throw new DOMException(
-							"Failed to execute 'send' on 'WebSocket': Still in CONNECTING state."
-						);
-					case WebSocketFields.CLOSED:
-					case WebSocketFields.CLOSING:
-						// no error is thrown
-						console.error('WebSocket is already in CLOSING or CLOSED state.');
-						break;
-					default:
-						WebSocketFields.prototype.send.call(this, data);
-						break;
-				}
+				if (error) throw error;
+				else WebSocketFields.prototype.send.call(this, data);
 			};
 		}
 
