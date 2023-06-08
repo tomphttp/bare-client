@@ -14,7 +14,7 @@ import type {
 	SocketServerToClient,
 } from './V3Types.js';
 import md5 from './md5.js';
-import { sendWebSocket } from './snapshot.js';
+import { WebSocketFields } from './snapshot.js';
 import { joinHeaders, splitHeaders } from './splitHeaderUtil.js';
 
 export default class ClientV3 extends Client {
@@ -92,7 +92,7 @@ export default class ClientV3 extends Client {
 				// but we need to fake this from the client so it thinks it's still connecting
 				onReadyState(WebSocket.CONNECTING);
 
-				sendWebSocket.call(
+				WebSocketFields.prototype.send.call(
 					ws,
 					JSON.stringify({
 						type: 'connect',
