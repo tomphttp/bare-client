@@ -69,20 +69,20 @@ export class BareClient {
 			this.onDemandSignal = _;
 		} else {
 			this.onDemand = false;
-			this.manfiest = _;
-			this.client = this.getClient();
+			this.loadManifest(_);
 		}
+	}
+	private loadManifest(manifest: BareManifest) {
+		this.manfiest = manifest;
+		this.client = this.getClient();
+		return this.client;
 	}
 	private demand() {
 		if (!this.onDemand) return this.client!;
 
 		if (!this.working)
 			this.working = fetchManifest(this.server, this.onDemandSignal)
-				.then((manfiest) => {
-					this.manfiest = manfiest;
-					this.client = this.getClient();
-					return this.client;
-				})
+				.then((manfiest) => this.loadManifest(manfiest))
 				.catch((err) => {
 					// allow the next request to re-fetch the manifest
 					// this is to prevent BareClient from permanently failing when used on demand
