@@ -1,10 +1,8 @@
 import { BareClient, fetchManifest } from './BareClient';
 
-export { BareClient };
-
 export * from './Client';
-
 export * from './BareTypes';
+export * from './BareClient';
 
 /**
  *
