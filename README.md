@@ -2,6 +2,8 @@
 
 This package implements the [TompHTTP Bare Server](https://github.com/tomphttp/specifications/blob/master/BareServer.md) as a client.
 
+See the [V2 API documentation](./docs/V2.md).
+
 See the [changelog](./CHANGELOG.md).
 
 ## Upgrading
