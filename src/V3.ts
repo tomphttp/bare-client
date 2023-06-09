@@ -7,7 +7,11 @@ import type {
 	BareWebSocket,
 } from './BareTypes.js';
 import { BareError, Client, statusEmpty } from './Client.js';
-import type { ReadyStateCallback, MetaCallback } from './Client.js';
+import type {
+	ReadyStateCallback,
+	MetaCallback,
+	GetRequestHeadersCallback,
+} from './Client.js';
 import type {
 	BareResponseHeaders,
 	SocketClientToServer,
@@ -35,7 +39,7 @@ export default class ClientV3 extends Client {
 	connect(
 		remote: URL,
 		protocols: string[],
-		requestHeaders: BareHeaders,
+		getRequestHeaders: GetRequestHeadersCallback,
 		onMeta: MetaCallback,
 		onReadyState: ReadyStateCallback
 	) {
@@ -92,15 +96,17 @@ export default class ClientV3 extends Client {
 				// but we need to fake this from the client so it thinks it's still connecting
 				onReadyState(WebSocket.CONNECTING);
 
-				WebSocketFields.prototype.send.call(
-					ws,
-					JSON.stringify({
-						type: 'connect',
-						remote: remote.toString(),
-						protocols,
-						headers: requestHeaders,
-						forwardHeaders: [],
-					} as SocketClientToServer)
+				getRequestHeaders().then((headers) =>
+					WebSocketFields.prototype.send.call(
+						ws,
+						JSON.stringify({
+							type: 'connect',
+							remote: remote.toString(),
+							protocols,
+							headers,
+							forwardHeaders: [],
+						} as SocketClientToServer)
+					)
 				);
 			},
 			// only block the open event once

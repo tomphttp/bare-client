@@ -32,12 +32,13 @@ export type ReadyStateCallback = (readyState: number) => void;
 export type WebSocketImpl = {
 	new (...args: ConstructorParameters<typeof WebSocket>): WebSocket;
 };
+export type GetRequestHeadersCallback = () => Promise<BareHeaders>;
 
 export abstract class Client {
 	abstract connect(
 		remote: URL,
 		protocols: string[],
-		requestHeaders: BareHeaders,
+		getRequestHeaders: GetRequestHeadersCallback,
 		onMeta: MetaCallback,
 		onReadyState: ReadyStateCallback,
 		webSocketImpl: WebSocketImpl

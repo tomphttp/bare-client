@@ -45,6 +45,12 @@ const wsProtocols = ['ws:', 'wss:'];
 export type GetReadyStateCallback = () => number;
 export type GetSendErrorCallback = () => Error | undefined;
 
+export type BareWebSocketHeaders = BareHeaders | Headers | undefined;
+
+export type BareWebSocketHeadersProvider =
+	| BareHeaders
+	| (() => BareHeaders | Promise<BareHeaders>);
+
 export class BareClient {
 	manfiest?: BareManifest;
 	private client?: Client;
@@ -113,7 +119,7 @@ export class BareClient {
 	createWebSocket(
 		remote: urlLike,
 		protocols: string | string[] | undefined = [],
-		headers: BareHeaders | Headers | undefined = {},
+		headers: BareWebSocketHeadersProvider = {},
 		readyStateHook?:
 			| ((socket: WebSocket, getReadyState: GetReadyStateCallback) => void)
 			| undefined,
@@ -150,24 +156,31 @@ export class BareClient {
 					`Failed to construct 'WebSocket': The subprotocol '${proto}' is invalid.`
 				);
 
-		const requestHeaders: BareHeaders =
-			headers instanceof Headers ? Object.fromEntries(headers) : headers;
-
-		// user is expected to specify user-agent and origin
-		// both are in spec
-
-		requestHeaders['Host'] = remote.host;
-		// requestHeaders['Origin'] = origin;
-		requestHeaders['Pragma'] = 'no-cache';
-		requestHeaders['Cache-Control'] = 'no-cache';
-		requestHeaders['Upgrade'] = 'websocket';
-		// requestHeaders['User-Agent'] = navigator.userAgent;
-		requestHeaders['Connection'] = 'Upgrade';
-
 		const socket = this.client.connect(
 			remote,
 			protocols,
-			requestHeaders,
+			async () => {
+				const resolvedHeaders =
+					typeof headers === 'function' ? await headers() : headers;
+
+				const requestHeaders: BareHeaders =
+					resolvedHeaders instanceof Headers
+						? Object.fromEntries(resolvedHeaders)
+						: resolvedHeaders;
+
+				// user is expected to specify user-agent and origin
+				// both are in spec
+
+				requestHeaders['Host'] = (remote as URL).host;
+				// requestHeaders['Origin'] = origin;
+				requestHeaders['Pragma'] = 'no-cache';
+				requestHeaders['Cache-Control'] = 'no-cache';
+				requestHeaders['Upgrade'] = 'websocket';
+				// requestHeaders['User-Agent'] = navigator.userAgent;
+				requestHeaders['Connection'] = 'Upgrade';
+
+				return requestHeaders;
+			},
 			(meta) => {
 				const metaEvent = new Event('meta') as MetaEvent;
 
