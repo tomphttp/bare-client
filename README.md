@@ -4,6 +4,22 @@ This package implements the [TompHTTP Bare Server](https://github.com/tomphttp/s
 
 See the [changelog](./CHANGELOG.md).
 
+## Upgrading
+
+A guide for updating from v1 to v2 can be found [here](./docs/V2-UPGRADE-GUIDE.md).
+
+## Older Bare servers
+
+Starting from v2, @tomphttp/bare-client only supports Bare servers v3+.
+
+If you operate an outdated Bare server, we encourage you to update. If you're using an outdated Bare server, we encourage you to find an updated Bare server or host your own.
+
+If you're too lazy to do either of the above, you can install an outdated and unsupported version of the Bare client.
+
+```sh
+npm install @tomphttp/bare-client@1
+```
+
 ## Quickstart
 
 Script tag:

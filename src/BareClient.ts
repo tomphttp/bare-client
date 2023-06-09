@@ -101,7 +101,9 @@ export class BareClient {
 			if (this.manfiest!.versions.includes(version))
 				return new ctor(this.server);
 
-		throw new Error(`Unable to find compatible client version.`);
+		throw new Error(
+			'Unable to find compatible client version. Starting from v2.0.0, @tomphttp/bare-client only supports Bare servers v3+. For more information, see https://github.com/tomphttp/bare-client/'
+		);
 	}
 	/**
 	 *
