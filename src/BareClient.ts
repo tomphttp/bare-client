@@ -42,6 +42,9 @@ const getRealReadyState = Object.getOwnPropertyDescriptor(
 
 const wsProtocols = ['ws:', 'wss:'];
 
+export type GetReadyStateCallback = () => number;
+export type GetSendErrorCallback = () => Error | undefined;
+
 export class BareClient {
 	manfiest?: BareManifest;
 	private client?: Client;
@@ -110,10 +113,10 @@ export class BareClient {
 		protocols: string | string[] | undefined = [],
 		headers: BareHeaders | Headers | undefined = {},
 		readyStateHook?:
-			| ((socket: WebSocket, getReadyState: () => number) => void)
+			| ((socket: WebSocket, getReadyState: GetReadyStateCallback) => void)
 			| undefined,
 		sendHook?:
-			| ((socket: WebSocket, getSendError: () => Error | undefined) => void)
+			| ((socket: WebSocket, getSendError: GetSendErrorCallback) => void)
 			| undefined,
 		webSocketImpl: WebSocketImpl = WebSocket
 	): BareWebSocket {
