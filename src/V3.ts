@@ -4,7 +4,6 @@ import type {
 	BareHeaders,
 	BareMethod,
 	BareResponse,
-	BareWebSocket,
 } from './BareTypes.js';
 import { BareError, Client, statusEmpty } from './Client.js';
 import type {
@@ -43,7 +42,7 @@ export default class ClientV3 extends Client {
 		onMeta: MetaCallback,
 		onReadyState: ReadyStateCallback
 	) {
-		const ws: WebSocket & Partial<BareWebSocket> = new WebSocket(this.ws);
+		const ws = new WebSocket(this.ws);
 
 		const cleanup = () => {
 			ws.removeEventListener('close', closeListener);
@@ -113,7 +112,7 @@ export default class ClientV3 extends Client {
 			{ once: true }
 		);
 
-		return ws as BareWebSocket;
+		return ws;
 	}
 	async request(
 		method: BareMethod,

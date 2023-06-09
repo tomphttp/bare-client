@@ -3,9 +3,6 @@ import type {
 	BareManifest,
 	BareResponse,
 	BareResponseFetch,
-	BareWebSocket,
-	BareWebSocketMetaFull,
-	MetaEvent,
 	urlLike,
 } from './BareTypes';
 import { maxRedirects } from './BareTypes';
@@ -42,14 +39,16 @@ const getRealReadyState = Object.getOwnPropertyDescriptor(
 
 const wsProtocols = ['ws:', 'wss:'];
 
-export type GetReadyStateCallback = () => number;
-export type GetSendErrorCallback = () => Error | undefined;
-
-export type BareWebSocketHeaders = BareHeaders | Headers | undefined;
-
-export type BareWebSocketHeadersProvider =
-	| BareHeaders
-	| (() => BareHeaders | Promise<BareHeaders>);
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace BareWebSocket {
+	export type GetReadyStateCallback = () => number;
+	export type GetSendErrorCallback = () => Error | undefined;
+	export type GetProtocolCallback = () => string;
+	export type HeadersType = BareHeaders | Headers | undefined;
+	export type HeadersProvider =
+		| BareHeaders
+		| (() => BareHeaders | Promise<BareHeaders>);
+}
 
 export class BareClient {
 	manfiest?: BareManifest;
@@ -113,21 +112,38 @@ export class BareClient {
 	}
 	/**
 	 *
-	 * @param readyStateHook A callback executed by this function with helper arguments for hooking the readyState property. If a hook isn't provided, bare-client will hook the property on the instance. Hooking it on an instance basis is good for small projects, but ideally the class should be hooked by the user of bare-client.
-	 * @param sendHook A callback executed by this function with helper arguments for hooking the send function. If a hook isn't provided, bare-client will hook the function on the instance.
+	 * @param readyStateHook A hook executed by this function with helper arguments for hooking the readyState property. If a hook isn't provided, bare-client will hook the property on the instance. Hooking it on an instance basis is good for small projects, but ideally the class should be hooked by the user of bare-client.
+	 * @param sendHook A hook executed by this function with helper arguments for hooking the send function. If a hook isn't provided, bare-client will hook the function on the instance.
+	 * @param urlHook A hook executed by this function with the URL. If a hook isn't provided, bare-client will hook the URL.
+	 * @param protocolHook A hook executed by this function with a helper for getting the current fake protocol. If a hook isn't provided, bare-client will hook the protocol.
+	 * @param onSetCookiesCallback A callback executed by this function with an array of cookies. This is called once the metadata from the server is received.
 	 */
 	createWebSocket(
 		remote: urlLike,
 		protocols: string | string[] | undefined = [],
-		headers: BareWebSocketHeadersProvider = {},
+		headers: BareWebSocket.HeadersProvider = {},
 		readyStateHook?:
-			| ((socket: WebSocket, getReadyState: GetReadyStateCallback) => void)
+			| ((
+					socket: WebSocket,
+					getReadyState: BareWebSocket.GetReadyStateCallback
+			  ) => void)
 			| undefined,
 		sendHook?:
-			| ((socket: WebSocket, getSendError: GetSendErrorCallback) => void)
+			| ((
+					socket: WebSocket,
+					getSendError: BareWebSocket.GetSendErrorCallback
+			  ) => void)
 			| undefined,
+		urlHook?: ((socket: WebSocket, url: URL) => void) | undefined,
+		protocolHook?:
+			| ((
+					socket: WebSocket,
+					getProtocol: BareWebSocket.GetProtocolCallback
+			  ) => void)
+			| undefined,
+		onSetCookiesCallback?: ((setCookies: string[]) => void) | undefined,
 		webSocketImpl: WebSocketImpl = WebSocket
-	): BareWebSocket {
+	): WebSocket {
 		if (!this.client)
 			throw new TypeError(
 				'You need to wait for the client to finish fetching the manifest before creating any WebSockets. Try caching the manifest data before making this request.'
@@ -182,41 +198,19 @@ export class BareClient {
 				return requestHeaders;
 			},
 			(meta) => {
-				const metaEvent = new Event('meta') as MetaEvent;
-
-				// prepare the event
-				const metaFull = Object.freeze({
-					url: remote.toString(),
-					...meta,
-				} as BareWebSocketMetaFull);
-
-				Object.defineProperty(metaEvent, 'meta', {
-					value: metaFull,
-					writable: false,
-					configurable: false,
-				});
-
-				// define the properties ourselves by default if dispatchEvent returns true
-				// true is returned when nothing is done to cancel the event (preventDefault, cancellable)
-				if (!socket.dispatchEvent(metaEvent)) {
-					Object.defineProperty(socket, 'protocol', {
-						get: () => metaFull.protocol,
-						configurable: true,
-						enumerable: true,
-					});
-
-					Object.defineProperty(socket, 'url', {
-						get: () => metaFull.url,
-						configurable: true,
-						enumerable: true,
-					});
-				}
+				fakeProtocol = meta.protocol;
+				if (onSetCookiesCallback) onSetCookiesCallback(meta.setCookies);
 			},
 			(readyState) => {
 				fakeReadyState = readyState;
 			},
 			webSocketImpl
 		);
+
+		// protocol is always an empty before connecting
+		// updated when we receive the metadata
+		// this value doesn't change when it's CLOSING or CLOSED etc
+		let fakeProtocol = '';
 
 		let fakeReadyState: number = WebSocketFields.CONNECTING;
 
@@ -261,6 +255,24 @@ export class BareClient {
 				else WebSocketFields.prototype.send.call(this, data);
 			};
 		}
+
+		if (urlHook) urlHook(socket, remote);
+		else
+			Object.defineProperty(socket, 'url', {
+				get: () => remote.toString(),
+				configurable: true,
+				enumerable: true,
+			});
+
+		const getProtocol = () => fakeProtocol;
+
+		if (protocolHook) protocolHook(socket, getProtocol);
+		else
+			Object.defineProperty(socket, 'protocol', {
+				get: getProtocol,
+				configurable: true,
+				enumerable: true,
+			});
 
 		return socket;
 	}
