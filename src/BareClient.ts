@@ -55,7 +55,7 @@ export namespace BareWebSocket {
 		 * Usually one of `User-Agent`, `Origin`, and `Cookie`
 		 * Can be just the headers object or an synchronous/asynchronous function that returns the headers object
 		 */
-		headers: BareWebSocket.HeadersProvider;
+		headers?: BareWebSocket.HeadersProvider;
 		/**
 		 * A hook executed by this function with helper arguments for hooking the readyState property. If a hook isn't provided, bare-client will hook the property on the instance. Hooking it on an instance basis is good for small projects, but ideally the class should be hooked by the user of bare-client.
 		 */
@@ -91,7 +91,7 @@ export namespace BareWebSocket {
 		 * A callback executed by this function with an array of cookies. This is called once the metadata from the server is received.
 		 */
 		setCookiesCallback?: ((setCookies: string[]) => void) | undefined;
-		webSocketImpl: WebSocketImpl;
+		webSocketImpl?: WebSocketImpl;
 	}
 }
 
