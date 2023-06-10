@@ -267,11 +267,13 @@ export class BareClient {
 		if (options.sendErrorHook) options.sendErrorHook(socket, getSendError);
 		else {
 			// we have to hook .send ourselves
-			socket.send = function (data) {
+			// use ...args to avoid giving the number of args a quantity
+			// no arguments will trip the following error: TypeError: Failed to execute 'send' on 'WebSocket': 1 argument required, but only 0 present.
+			socket.send = function (...args) {
 				const error = getSendError();
 
 				if (error) throw error;
-				else WebSocketFields.prototype.send.call(this, data);
+				else WebSocketFields.prototype.send.call(this, ...args);
 			};
 		}
 
