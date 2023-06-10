@@ -74,7 +74,7 @@ export default class ClientV3 extends Client {
 			});
 
 			// now we want the client to see the websocket is open and ready to communicate with the remote
-			onReadyState(WebSocket.OPEN);
+			onReadyState(WebSocketFields.OPEN);
 
 			ws.dispatchEvent(new Event('open'));
 		};
@@ -93,7 +93,7 @@ export default class ClientV3 extends Client {
 				// we need to fake the readyState value again so it remains CONNECTING
 				// right now, it's open because we just connected to the remote
 				// but we need to fake this from the client so it thinks it's still connecting
-				onReadyState(WebSocket.CONNECTING);
+				onReadyState(WebSocketFields.CONNECTING);
 
 				getRequestHeaders().then((headers) =>
 					WebSocketFields.prototype.send.call(
