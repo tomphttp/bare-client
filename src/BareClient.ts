@@ -48,6 +48,51 @@ export namespace BareWebSocket {
 	export type HeadersProvider =
 		| BareHeaders
 		| (() => BareHeaders | Promise<BareHeaders>);
+
+	export interface Options {
+		/**
+		 * A provider of request headers to pass to the remote.
+		 * Usually one of `User-Agent`, `Origin`, and `Cookie`
+		 * Can be just the headers object or an synchronous/asynchronous function that returns the headers object
+		 */
+		headers: BareWebSocket.HeadersProvider;
+		/**
+		 * A hook executed by this function with helper arguments for hooking the readyState property. If a hook isn't provided, bare-client will hook the property on the instance. Hooking it on an instance basis is good for small projects, but ideally the class should be hooked by the user of bare-client.
+		 */
+		readyStateHook?:
+			| ((
+					socket: WebSocket,
+					getReadyState: BareWebSocket.GetReadyStateCallback
+			  ) => void)
+			| undefined;
+		/**
+		 * A hook executed by this function with helper arguments for determining if the send function should throw an error. If a hook isn't provided, bare-client will hook the function on the instance.
+		 */
+		sendErrorHook?:
+			| ((
+					socket: WebSocket,
+					getSendError: BareWebSocket.GetSendErrorCallback
+			  ) => void)
+			| undefined;
+		/**
+		 * A hook executed by this function with the URL. If a hook isn't provided, bare-client will hook the URL.
+		 */
+		urlHook?: ((socket: WebSocket, url: URL) => void) | undefined;
+		/**
+		 * A hook executed by this function with a helper for getting the current fake protocol. If a hook isn't provided, bare-client will hook the protocol.
+		 */
+		protocolHook?:
+			| ((
+					socket: WebSocket,
+					getProtocol: BareWebSocket.GetProtocolCallback
+			  ) => void)
+			| undefined;
+		/**
+		 * A callback executed by this function with an array of cookies. This is called once the metadata from the server is received.
+		 */
+		setCookiesCallback?: ((setCookies: string[]) => void) | undefined;
+		webSocketImpl: WebSocketImpl;
+	}
 }
 
 export class BareClient {
@@ -110,39 +155,10 @@ export class BareClient {
 			'Unable to find compatible client version. Starting from v2.0.0, @tomphttp/bare-client only supports Bare servers v3+. For more information, see https://github.com/tomphttp/bare-client/'
 		);
 	}
-	/**
-	 *
-	 * @param readyStateHook A hook executed by this function with helper arguments for hooking the readyState property. If a hook isn't provided, bare-client will hook the property on the instance. Hooking it on an instance basis is good for small projects, but ideally the class should be hooked by the user of bare-client.
-	 * @param sendHook A hook executed by this function with helper arguments for hooking the send function. If a hook isn't provided, bare-client will hook the function on the instance.
-	 * @param urlHook A hook executed by this function with the URL. If a hook isn't provided, bare-client will hook the URL.
-	 * @param protocolHook A hook executed by this function with a helper for getting the current fake protocol. If a hook isn't provided, bare-client will hook the protocol.
-	 * @param onSetCookiesCallback A callback executed by this function with an array of cookies. This is called once the metadata from the server is received.
-	 */
 	createWebSocket(
 		remote: urlLike,
 		protocols: string | string[] | undefined = [],
-		headers: BareWebSocket.HeadersProvider = {},
-		readyStateHook?:
-			| ((
-					socket: WebSocket,
-					getReadyState: BareWebSocket.GetReadyStateCallback
-			  ) => void)
-			| undefined,
-		sendHook?:
-			| ((
-					socket: WebSocket,
-					getSendError: BareWebSocket.GetSendErrorCallback
-			  ) => void)
-			| undefined,
-		urlHook?: ((socket: WebSocket, url: URL) => void) | undefined,
-		protocolHook?:
-			| ((
-					socket: WebSocket,
-					getProtocol: BareWebSocket.GetProtocolCallback
-			  ) => void)
-			| undefined,
-		onSetCookiesCallback?: ((setCookies: string[]) => void) | undefined,
-		webSocketImpl: WebSocketImpl = WebSocket
+		options: BareWebSocket.Options
 	): WebSocket {
 		if (!this.client)
 			throw new TypeError(
@@ -177,7 +193,9 @@ export class BareClient {
 			protocols,
 			async () => {
 				const resolvedHeaders =
-					typeof headers === 'function' ? await headers() : headers;
+					typeof options.headers === 'function'
+						? await options.headers()
+						: options.headers || {};
 
 				const requestHeaders: BareHeaders =
 					resolvedHeaders instanceof Headers
@@ -199,12 +217,13 @@ export class BareClient {
 			},
 			(meta) => {
 				fakeProtocol = meta.protocol;
-				if (onSetCookiesCallback) onSetCookiesCallback(meta.setCookies);
+				if (options.setCookiesCallback)
+					options.setCookiesCallback(meta.setCookies);
 			},
 			(readyState) => {
 				fakeReadyState = readyState;
 			},
-			webSocketImpl
+			options.webSocketImpl || WebSocket
 		);
 
 		// protocol is always an empty before connecting
@@ -222,7 +241,7 @@ export class BareClient {
 				: realReadyState;
 		};
 
-		if (readyStateHook) readyStateHook(socket, getReadyState);
+		if (options.readyStateHook) options.readyStateHook(socket, getReadyState);
 		else {
 			// we have to hook .readyState ourselves
 
@@ -245,7 +264,7 @@ export class BareClient {
 				);
 		};
 
-		if (sendHook) sendHook(socket, getSendError);
+		if (options.sendErrorHook) options.sendErrorHook(socket, getSendError);
 		else {
 			// we have to hook .send ourselves
 			socket.send = function (data) {
@@ -256,7 +275,7 @@ export class BareClient {
 			};
 		}
 
-		if (urlHook) urlHook(socket, remote);
+		if (options.urlHook) options.urlHook(socket, remote);
 		else
 			Object.defineProperty(socket, 'url', {
 				get: () => remote.toString(),
@@ -266,7 +285,7 @@ export class BareClient {
 
 		const getProtocol = () => fakeProtocol;
 
-		if (protocolHook) protocolHook(socket, getProtocol);
+		if (options.protocolHook) options.protocolHook(socket, getProtocol);
 		else
 			Object.defineProperty(socket, 'protocol', {
 				get: getProtocol,
