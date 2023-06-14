@@ -9,8 +9,8 @@ import { maxRedirects } from './BareTypes';
 import type { Client, WebSocketImpl } from './Client';
 import { statusRedirect } from './Client';
 import ClientV3 from './V3';
-import { validProtocol } from './encodeProtocol';
 import { WebSocketFields } from './snapshot';
+import { validProtocol } from './webSocket';
 
 const clientCtors: [string, { new (server: URL): Client }][] = [
 	['v3', ClientV3],
