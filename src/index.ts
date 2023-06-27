@@ -14,7 +14,7 @@ export async function createBareClient(
 	server: string | URL,
 	signal?: AbortSignal
 ): Promise<BareClient> {
-	const manfiest = await fetchManifest(server, signal);
+	const manifest = await fetchManifest(server, signal);
 
-	return new BareClient(server, manfiest);
+	return new BareClient(server, manifest);
 }

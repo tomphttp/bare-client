@@ -96,7 +96,7 @@ export namespace BareWebSocket {
 }
 
 export class BareClient {
-	manfiest?: BareManifest;
+	manifest?: BareManifest;
 	private client?: Client;
 	private server: URL;
 	private working?: Promise<Client>;
@@ -111,9 +111,9 @@ export class BareClient {
 	/**
 	 * Immediately create a BareClient.
 	 * @param server A full URL to the bare server.
-	 * @param manfiest A Bare server manifest.
+	 * @param manifest A Bare server manifest.
 	 */
-	constructor(server: string | URL, manfiest?: BareManifest);
+	constructor(server: string | URL, manifest?: BareManifest);
 	constructor(server: string | URL, _?: BareManifest | AbortSignal) {
 		this.server = new URL(server);
 
@@ -126,7 +126,7 @@ export class BareClient {
 		}
 	}
 	private loadManifest(manifest: BareManifest) {
-		this.manfiest = manifest;
+		this.manifest = manifest;
 		this.client = this.getClient();
 		return this.client;
 	}
@@ -135,7 +135,7 @@ export class BareClient {
 
 		if (!this.working)
 			this.working = fetchManifest(this.server, this.onDemandSignal)
-				.then((manfiest) => this.loadManifest(manfiest))
+				.then((manifest) => this.loadManifest(manifest))
 				.catch((err) => {
 					// allow the next request to re-fetch the manifest
 					// this is to prevent BareClient from permanently failing when used on demand
@@ -148,7 +148,7 @@ export class BareClient {
 	private getClient() {
 		// newest-oldest
 		for (const [version, ctor] of clientCtors)
-			if (this.manfiest!.versions.includes(version))
+			if (this.manifest!.versions.includes(version))
 				return new ctor(this.server);
 
 		throw new Error(
