@@ -12,7 +12,7 @@ import ClientV3 from './V3';
 import { WebSocketFields } from './snapshot';
 import { validProtocol } from './webSocket';
 
-const clientCtors: [string, { new (server: URL): Client }][] = [
+const clientCtors: [string, { new(server: URL): Client }][] = [
 	['v3', ClientV3],
 ];
 
@@ -60,20 +60,20 @@ export namespace BareWebSocket {
 		 * A hook executed by this function with helper arguments for hooking the readyState property. If a hook isn't provided, bare-client will hook the property on the instance. Hooking it on an instance basis is good for small projects, but ideally the class should be hooked by the user of bare-client.
 		 */
 		readyStateHook?:
-			| ((
-					socket: WebSocket,
-					getReadyState: BareWebSocket.GetReadyStateCallback
-			  ) => void)
-			| undefined;
+		| ((
+			socket: WebSocket,
+			getReadyState: BareWebSocket.GetReadyStateCallback
+		) => void)
+		| undefined;
 		/**
 		 * A hook executed by this function with helper arguments for determining if the send function should throw an error. If a hook isn't provided, bare-client will hook the function on the instance.
 		 */
 		sendErrorHook?:
-			| ((
-					socket: WebSocket,
-					getSendError: BareWebSocket.GetSendErrorCallback
-			  ) => void)
-			| undefined;
+		| ((
+			socket: WebSocket,
+			getSendError: BareWebSocket.GetSendErrorCallback
+		) => void)
+		| undefined;
 		/**
 		 * A hook executed by this function with the URL. If a hook isn't provided, bare-client will hook the URL.
 		 */
@@ -82,11 +82,11 @@ export namespace BareWebSocket {
 		 * A hook executed by this function with a helper for getting the current fake protocol. If a hook isn't provided, bare-client will hook the protocol.
 		 */
 		protocolHook?:
-			| ((
-					socket: WebSocket,
-					getProtocol: BareWebSocket.GetProtocolCallback
-			  ) => void)
-			| undefined;
+		| ((
+			socket: WebSocket,
+			getProtocol: BareWebSocket.GetProtocolCallback
+		) => void)
+		| undefined;
 		/**
 		 * A callback executed by this function with an array of cookies. This is called once the metadata from the server is received.
 		 */
