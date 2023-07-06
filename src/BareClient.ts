@@ -329,6 +329,8 @@ export class BareClient {
 					req.body,
 					urlO,
 					req.cache,
+					// @ts-ignore
+					req.duplex,
 					req.signal
 				);
 

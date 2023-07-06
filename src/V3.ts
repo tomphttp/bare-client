@@ -120,7 +120,8 @@ export default class ClientV3 extends Client {
 		body: BareBodyInit,
 		remote: URL,
 		cache: BareCache | undefined,
-		signal: AbortSignal | undefined
+		duplex: string | undefined,
+		signal: AbortSignal | undefined,
 	): Promise<BareResponse> {
 		if (remote.protocol.startsWith('blob:')) {
 			const response = await fetch(remote);
@@ -151,8 +152,6 @@ export default class ClientV3 extends Client {
 			credentials: 'omit',
 			method: method,
 			signal,
-			// @ts-ignore
-			duplex: 'half',
 		};
 
 		if (cache !== 'only-if-cached') {
@@ -161,6 +160,11 @@ export default class ClientV3 extends Client {
 
 		if (body !== undefined) {
 			options.body = body;
+		}
+
+		if (duplex !== undefined) {
+			// @ts-ignore
+			options.duplex = duplex;
 		}
 
 		options.headers = this.createBareHeaders(remote, bareHeaders);

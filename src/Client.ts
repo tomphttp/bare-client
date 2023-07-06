@@ -49,6 +49,7 @@ export abstract class Client {
 		body: BareBodyInit,
 		remote: URL,
 		cache: BareCache | undefined,
+		duplex: string | undefined,
 		signal: AbortSignal | undefined
 	): Promise<BareResponse>;
 	protected base: URL;
