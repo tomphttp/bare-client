@@ -30,7 +30,7 @@ export class BareError extends Error {
 export type MetaCallback = (meta: BareWebSocketMeta) => void;
 export type ReadyStateCallback = (readyState: number) => void;
 export type WebSocketImpl = {
-	new (...args: ConstructorParameters<typeof WebSocket>): WebSocket;
+	new(...args: ConstructorParameters<typeof WebSocket>): WebSocket;
 };
 export type GetRequestHeadersCallback = () => Promise<BareHeaders>;
 
