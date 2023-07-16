@@ -17,6 +17,8 @@ This API was a deprecated getter for the longest time, and now it's been complet
 | ------- | ----------- |
 | `.data` | `.manifest` |
 
+## `.fetch` no longer accepts `Request` as an argument.
+
 ## `.request()` and `.connect()` methods are private
 
 These primitive APIs were exposed for clients that use the legacy remote interface. These APIs accepted Bare remote objects instead of the more simple URL interface. These APIs are now only used internally and can no longer be accessed.

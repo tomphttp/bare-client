@@ -26,8 +26,6 @@ export interface BareWebSocketMeta {
 export type BareHTTPProtocol = 'blob:' | 'http:' | 'https:' | string;
 export type BareWSProtocol = 'ws:' | 'wss:' | string;
 
-export type urlLike = URL | string;
-
 export const maxRedirects = 20;
 
 export type BareHeaders = Record<string, string | string[]>;

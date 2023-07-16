@@ -3,7 +3,6 @@ import type {
 	BareManifest,
 	BareResponse,
 	BareResponseFetch,
-	urlLike,
 } from './BareTypes';
 import { maxRedirects } from './BareTypes';
 import type { Client, WebSocketImpl } from './Client';
@@ -156,7 +155,7 @@ export class BareClient {
 		);
 	}
 	createWebSocket(
-		remote: urlLike,
+		remote: string | URL,
 		protocols: string | string[] | undefined = [],
 		options: BareWebSocket.Options
 	): WebSocket {
@@ -299,10 +298,12 @@ export class BareClient {
 	}
 
 	async fetch(
-		url: urlLike | Request,
+		url: string | URL,
 		init?: RequestInit
 	): Promise<BareResponseFetch> {
-		const req = isUrlLike(url) ? new Request(url, init) : url;
+		// Only create an instance of Request to parse certain parameters of init such as method, headers, redirect
+		// But use init values whenever possible
+		const req = new Request(url, init);
 
 		// try to use init.headers because it may contain capitalized headers
 		// furthermore, important headers on the Request class are blocked...
@@ -361,8 +362,4 @@ export class BareClient {
 			}
 		}
 	}
-}
-
-function isUrlLike(url: unknown): url is urlLike {
-	return typeof url === 'string' || url instanceof URL;
 }
