@@ -1,5 +1,4 @@
 import type {
-	BareBodyInit,
 	BareCache,
 	BareHeaders,
 	BareMethod,
@@ -30,7 +29,7 @@ export class BareError extends Error {
 export type MetaCallback = (meta: BareWebSocketMeta) => void;
 export type ReadyStateCallback = (readyState: number) => void;
 export type WebSocketImpl = {
-	new(...args: ConstructorParameters<typeof WebSocket>): WebSocket;
+	new (...args: ConstructorParameters<typeof WebSocket>): WebSocket;
 };
 export type GetRequestHeadersCallback = () => Promise<BareHeaders>;
 
@@ -46,7 +45,7 @@ export abstract class Client {
 	abstract request(
 		method: BareMethod,
 		requestHeaders: BareHeaders,
-		body: BareBodyInit,
+		body: BodyInit | null,
 		remote: URL,
 		cache: BareCache | undefined,
 		duplex: string | undefined,

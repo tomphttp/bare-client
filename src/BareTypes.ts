@@ -47,24 +47,6 @@ export interface BareResponseFetch extends BareResponse {
 	finalURL: string;
 }
 
-export type BareBodyInit =
-	| Blob
-	| BufferSource
-	| FormData
-	| URLSearchParams
-	| ReadableStream
-	| undefined
-	| null;
-
-export type BareFetchInit = {
-	method?: BareMethod;
-	headers?: Headers | BareHeaders;
-	body?: BareBodyInit;
-	cache?: BareCache;
-	redirect?: 'follow' | 'manual' | 'error' | string;
-	signal?: AbortSignal;
-};
-
 export interface BareMaintainer {
 	email?: string;
 	website?: string;

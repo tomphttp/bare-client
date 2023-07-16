@@ -1,5 +1,4 @@
 import type {
-	BareBodyInit,
 	BareCache,
 	BareHeaders,
 	BareMethod,
@@ -117,11 +116,11 @@ export default class ClientV3 extends Client {
 	async request(
 		method: BareMethod,
 		requestHeaders: BareHeaders,
-		body: BareBodyInit,
+		body: BodyInit | null,
 		remote: URL,
 		cache: BareCache | undefined,
 		duplex: string | undefined,
-		signal: AbortSignal | undefined,
+		signal: AbortSignal | undefined
 	): Promise<BareResponse> {
 		if (remote.protocol.startsWith('blob:')) {
 			const response = await fetch(remote);
@@ -169,12 +168,10 @@ export default class ClientV3 extends Client {
 
 		options.headers = this.createBareHeaders(remote, bareHeaders);
 
-		const request = new Request(
+		const response = await fetch(
 			this.http + '?cache=' + md5(remote.toString()),
 			options
 		);
-
-		const response = await fetch(request);
 
 		const readResponse = await this.readBareResponse(response);
 
