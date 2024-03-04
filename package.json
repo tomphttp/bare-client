@@ -3,8 +3,7 @@
 	"version": "2.2.0-alpha",
 	"homepage": "https://github.com/tomphttp",
 	"bugs": {
-		"url": "https://github.com/tomphttp/bare-client/issues",
-		"email": "tomp@sys32.dev"
+		"url": "https://github.com/tomphttp/bare-client/issues"
 	},
 	"repository": {
 		"type": "git",
@@ -12,7 +11,6 @@
 	},
 	"author": {
 		"name": "TOMP Development",
-		"email": "tomp@sys32.dev",
 		"url": "https://github.com/tomphttp"
 	},
 	"scripts": {
